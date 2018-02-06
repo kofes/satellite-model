@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_subdirectory(mat-vec)
 
+include_directories(mat-vec/inc)
+
 set(HELPERS args_serializer.h)
 
 add_executable(Satellite ${HELPERS} main.cpp)
