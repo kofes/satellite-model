@@ -39,7 +39,7 @@ namespace serialize {
         }
     };
 
-    serialize::map& args(int argc, char* argv[], serialize::map&& smap = {}) {
+    serialize::map args(int argc, char* argv[], serialize::map&& smap = {}) {
 
         serial_dbg << "argc = " << argc << "; argv = [" << argv[0];
         for (size_t i = 1; i < argc; ++i)
@@ -66,6 +66,6 @@ namespace serialize {
 
         }
 
-        return smap;
+        return std::move(smap);
     }
 }
