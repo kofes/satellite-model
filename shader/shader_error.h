@@ -1,5 +1,8 @@
 #pragma once
 
+#include "GL/glew.h"
+#include "GL/freeglut.h"
+
 #include <exception>
 
 namespace shader {
