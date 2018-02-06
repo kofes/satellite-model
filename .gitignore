@@ -5,3 +5,4 @@ Makefile
 CMakeFiles
 cmake_install.cmake
 Satellite
+Satellite.cbp
