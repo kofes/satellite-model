@@ -13,13 +13,26 @@ include_directories(mvp/camera)
 include_directories(mvp/actions)
 include_directories(mvp/projections)
 
+# add OpenGL
+find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+
+# add shader helpers
+file(GLOB SHADER_SRC_FILES shader/*.cpp)
+include_directories(shader)
+
 # set helpers
 set(HELPERS args_serializer.h)
 
 # compose executable
 add_executable(Satellite
         ${MVP_SRC_FILES}
+        ${SHADER_SRC_FILES}
         ${HELPERS}
         main.cpp)
 
-target_link_libraries(Satellite linear_algebra)
+target_link_libraries(Satellite
+        ${OPENGL_LIBRARIES}
+        ${GLUT_LIBRARY}
+        linear_algebra)
