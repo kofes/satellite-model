@@ -11,9 +11,9 @@ namespace glsl {
 namespace shader {
 class shader {
 public:
-    shader(GLuint id);
-    shader(GLuint id, std::ifstream& src);
-    shader(GLuint id, const std::string& src);
+    explicit shader(GLenum type);
+    explicit shader(GLenum type, std::ifstream& src);
+    explicit shader(GLenum type, const std::string& src);
     ~shader();
 
     shader& exec(std::ifstream& src);
@@ -21,8 +21,8 @@ public:
 
     shader& compile();
 
-    GLuint id();
-    GLuint type();
+    GLuint id() const;
+    GLuint type() const;
 private:
     class core;
 
