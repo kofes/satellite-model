@@ -16,7 +16,8 @@ include_directories(mvp/projections)
 # add OpenGL
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
+find_package(GLEW REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
 
 # add shader helpers
 file(GLOB SHADER_SRC_FILES shader/*.cpp)
@@ -35,4 +36,5 @@ add_executable(Satellite
 target_link_libraries(Satellite
         ${OPENGL_LIBRARIES}
         ${GLUT_LIBRARY}
+        ${GLEW_LIBRARY}
         linear_algebra)
