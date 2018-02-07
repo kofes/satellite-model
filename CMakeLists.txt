@@ -8,7 +8,7 @@ add_subdirectory(mat-vec)
 include_directories(mat-vec/inc)
 
 # add mvp
-file(GLOB MVP_SRC_FILES mvp/*.cpp)
+file(GLOB MVP_SRC_FILES mvp/*.h mvp/*.cpp)
 include_directories(mvp/camera)
 include_directories(mvp/actions)
 include_directories(mvp/projections)
@@ -20,7 +20,7 @@ find_package(GLEW REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS})
 
 # add shader helpers
-file(GLOB SHADER_SRC_FILES shader/*.cpp)
+file(GLOB SHADER_SRC_FILES shader/*.h shader/*.cpp)
 include_directories(shader)
 
 # set helpers
