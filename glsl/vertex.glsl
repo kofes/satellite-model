@@ -12,18 +12,15 @@ in vec3 light_position;
 in vec3 camera_position;
 
 out vec3 camera_normal;
-
 out vec3 light_normal;
 out float light_distance;
-
 out vec3 material_normal;
-
 out vec2 texture_uv;
 
 void main() {
     gl_Position = mvp * vec4(obj_position, 1.0);
 
-    vec3 model_position = mat3(model) * obj_position;
+    vec3 model_position = (model * vec4(obj_position, 1.0)).xyz;
 
     light_normal = normalize(light_position - model_position);
     light_distance = distance(light_position, model_position);
@@ -32,9 +29,9 @@ void main() {
 
     texture_uv = obj_texture;
 
-    material_normal = mat3(model) * normalize(obj_normal);
-    vec3 tangent = mat3(model) * normalize(obj_tangent);
-    vec3 bitangent = mat3(model) * normalize(obj_bitangent);
+    material_normal = normalize(mat3(model) * obj_normal);
+    vec3 tangent = normalize(mat3(model) * obj_tangent);
+    vec3 bitangent = normalize(mat3(model) * obj_bitangent);
 
     mat3 TBN = transpose(mat3(
         tangent,

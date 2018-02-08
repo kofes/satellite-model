@@ -2,46 +2,33 @@
 
 /// camera
 in vec3 camera_normal;
-
 /// light
-// scene light
 vec3 scene_ambient = vec3(0.2, 0.2, 0.2);
-// light position & direction from vertex shader
 in vec3 light_normal;
 in float light_distance;
-// light Phong specification
-in vec3 light_ambient;
-in vec3 light_diffuse;
-in vec3 light_specular;
-in vec3 light_emission;
-// approximation of light intensive
-in float attenuation_constant;
-in float attenuation_linear;
-in float attenuation_quadratic;
-// spot light specification
-in vec3 spot_normal;
-in float spot_cutoff;
-in float spot_exponent;
-
+uniform vec3 light_ambient;
+uniform vec3 light_diffuse;
+uniform vec3 light_specular;
+uniform vec3 light_emission;
+uniform float attenuation_constant;
+uniform float attenuation_linear;
+uniform float attenuation_quadratic;
+uniform vec3 spot_normal;
+uniform float spot_cutoff;
+uniform float spot_exponent;
 /// material
-in vec3 material_ambient;
-
+uniform vec3 material_ambient;
 in vec3 material_normal;
-in vec3 material_diffuse;
-in vec3 material_specular;
-
-in vec3 material_emission;
-in float material_shininess;
-
+uniform vec3 material_diffuse;
+uniform vec3 material_specular;
+uniform vec3 material_emission;
+uniform float material_shininess;
 /// texture
 in vec2 texture_uv;
-
 uniform sampler2D normal_sampler;
 uniform sampler2D diffuse_sampler;
 uniform sampler2D specular_sampler;
-
-/// choose between samplers & materials
-uniform bool select_samlers;
+uniform bool select_samplers;
 
 out vec4 out_color;
 
@@ -63,11 +50,15 @@ void main() {
         else
             attenuation *= pow(spot_angle, spot_exponent);
 
+        vec3 diffuse = material_diffuse;
+        vec3 specular = material_specular;
+        vec3 normal = material_normal;
+
         /// texture
-        if (select_samlers) {
-            material_diffuse = texture(diffuse_sampler, texture_uv).rgb;
-            material_specular = texture(specular_sampler, texture_uv).rgb;
-            material_normal = normalize(texture(normal_sampler, texture_uv).rgb * 2.0 - 1.0);
+        if (select_samplers) {
+            diffuse = texture(diffuse_sampler, texture_uv).rgb;
+            specular = texture(specular_sampler, texture_uv).rgb;
+            normal = normalize(texture(normal_sampler, texture_uv).rgb * 2.0 - 1.0);
         }
 
         /// diffuse
