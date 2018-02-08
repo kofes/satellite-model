@@ -11,9 +11,6 @@ include_directories(mat-vec/inc)
 file(GLOB MVP_SRC_FILES
         mvp/*.h mvp/*.cpp
         mvp/*/*.h mvp/*/*.cpp)
-include_directories(mvp/camera)
-include_directories(mvp/actions)
-include_directories(mvp/projections)
 
 # add OpenGL
 find_package(OpenGL REQUIRED)
@@ -31,13 +28,11 @@ endif()
 
 # add shader helpers
 file(GLOB SHADER_SRC_FILES shader/*.h shader/*.cpp)
-include_directories(shader)
 
 # add geometric objects
 file(GLOB GEOMETRIC_OBJ_SRC_FILES
-        geometric_objects/*.h geometric_objects/*.cpp
-        geometric_objects/*/*.h geometric_objects/*/*.cpp)
-include_directories(geometric_objects)
+        geometric_object/*.h geometric_object/*.cpp
+        geometric_object/*/*.h geometric_object/*/*.cpp)
 
 # add SOIL
 add_subdirectory(soil)
@@ -45,10 +40,15 @@ include_directories(soil/inc)
 
 # add texture helper
 set(TEXTURE_SRC_FILES texture/texture.h texture/texture.cpp)
-include_directories(texture)
+
+# add math models
+file(GLOB MATH_MODELS_SRC_FILES math_model/*.h math_model/*.cpp)
 
 # set helpers
 set(HELPERS args_serializer.h)
+
+# include root
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # compose executable
 add_executable(Satellite
@@ -56,6 +56,7 @@ add_executable(Satellite
         ${SHADER_SRC_FILES}
         ${GEOMETRIC_OBJ_SRC_FILES}
         ${TEXTURE_SRC_FILES}
+        ${MATH_MODELS_SRC_FILES}
         ${HELPERS}
         main.cpp)
 
