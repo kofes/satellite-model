@@ -22,8 +22,9 @@ public:
 
     grid& bitangent(GLuint) override;
 
-    object& color(GLuint) override;
+    grid& color(GLuint) override;
     grid& texture(GLuint) override;
+
 private:
     class core;
 

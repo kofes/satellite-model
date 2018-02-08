@@ -6,7 +6,10 @@ public:
     core() = default;
 
     std::size_t count = 0;
-    float vertex[6] = {0};
+    float vertex[6] = {
+            -1.f, 0.f, -1.f,
+            -1.f, 0.f, +1.f
+    };
 };
 
 grid::grid(std::size_t count):
@@ -14,19 +17,21 @@ grid::grid(std::size_t count):
         m_core(new grid::core) {
     m_core->count = count;
     float bound = (count - (count % 2 == 1)) / 20.f;
-    m_core->vertex[0] =
-    m_core->vertex[2] =
-    m_core->vertex[3] =
-            - (m_core->vertex[5] = bound);
+    m_core->vertex[0] *=
+    m_core->vertex[2] *=
+    m_core->vertex[3] *=
+    m_core->vertex[5] *=
+            bound / m_core->vertex[5];
 }
 
 grid& grid::count(std::size_t count) {
     m_core->count = count;
     float bound = (count - (count % 2 == 1)) / 20.f;
-    m_core->vertex[0] =
-    m_core->vertex[2] =
-    m_core->vertex[3] =
-            - (m_core->vertex[5] = bound);
+    m_core->vertex[0] *=
+    m_core->vertex[2] *=
+    m_core->vertex[3] *=
+    m_core->vertex[5] *=
+            bound / m_core->vertex[5];
     return *this;
 }
 
@@ -36,7 +41,7 @@ grid& grid::recompute() {
 
 grid& grid::render() {
     if (m_core->count == 0) return *this;
-    float buffer[2 * 3* (m_core->count * 2)];
+    float buffer[2 * 3 * (m_core->count * 2)];
 
     const float* vertex = m_core->vertex;
     const std::size_t& count = m_core->count;
@@ -53,7 +58,7 @@ grid& grid::render() {
         buffer[(count + i) * 6 + 2] = vertex[2] - 1.f + .1f * i;
         buffer[(count + i) * 6 + 3] = - vertex[3];
         buffer[(count + i) * 6 + 4] = vertex[4];
-        buffer[(count + i) * 6 + 5] = vertex[5] - 1.f + .1f * i;
+        buffer[(count + i) * 6 + 5] = - vertex[5] - 1.f + .1f * i;
     }
 
     glBindVertexArray(m_vao);
@@ -64,7 +69,7 @@ grid& grid::render() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo["vertex"]);
 
     glBufferData(GL_ARRAY_BUFFER, (2 * 3 * count * 2) * sizeof(float), buffer, GL_STATIC_DRAW);
-    glVertexAttribPointer(attr["vertex"], 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glVertexAttribPointer(attr["vertex"], 3, GL_FLOAT, GL_FALSE, 0, NULL);
     glEnableVertexAttribArray(attr["vertex"]);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -91,7 +96,7 @@ grid& grid::bitangent(GLuint) {
     return *this;
 }
 
-object& grid::color(GLuint) {
+grid& grid::color(GLuint) {
 
     return *this;
 }
