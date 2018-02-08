@@ -8,38 +8,10 @@ public:
     core(GLuint id) : id(id) {};
 
     GLuint id;
-    size_t *ptr_counter;
 };
 
 program::program(): m_core(new program::core) {
     m_core->id = glCreateProgram();
-    m_core->ptr_counter = new size_t;
-}
-
-program::program(const program &src): m_core(new program::core) {
-    m_core->id = src.id();
-    m_core->ptr_counter = src.m_core->ptr_counter;
-    ++*m_core->ptr_counter;
-}
-
-program &program::operator=(const program &src) {
-    if (!*m_core->ptr_counter) {
-        glDeleteProgram(m_core->id);
-        delete m_core->ptr_counter;
-    } else --*m_core->ptr_counter;
-
-    m_core->id = src.id();
-    m_core->ptr_counter = src.m_core->ptr_counter;
-    ++*m_core->ptr_counter;
-
-    return *this;
-}
-
-program::~program() {
-    if (!*m_core->ptr_counter) {
-        glDeleteProgram(m_core->id);
-        delete m_core->ptr_counter;
-    } else --*m_core->ptr_counter;
 }
 
 program &program::add(const shader &src) {
@@ -53,7 +25,7 @@ program &program::link() {
 
     GLint error_code;
     glGetProgramiv(m_core->id, GL_LINK_STATUS, &error_code);
-    if (error_code) {
+    if (error_code == GL_FALSE) {
         GLsizei len;
         glGetProgramiv(m_core->id, GL_INFO_LOG_LENGTH, &len);
         char error_msg[len];
@@ -76,7 +48,10 @@ GLint program::get(const std::string &name, field type) {
 }
 
 program &program::operator()(const std::string &name, field type, field_handler handler) {
-    handler(get(name, type));
+    GLint id;
+    handler(id = get(name, type));
+    if (id == -1)
+        SHADER_PROGRAM_LOGout << "bad shader field name " << name << '\n';
     return *this;
 }
 }

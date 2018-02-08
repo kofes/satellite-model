@@ -8,6 +8,15 @@
 #include "shader.h"
 #include "shader_error.h"
 
+#define SHADER_PROGRAM_LOG
+
+#ifdef SHADER_PROGRAM_LOG
+#include <iostream>
+#define SHADER_PROGRAM_LOGout (std::cout << "SHADER PROGRAM: ")
+#else
+#define SHADER_PROGRAM_LOGout (std::ostream(0))
+#endif
+
 namespace glsl {
 namespace shader {
 enum class field {
@@ -20,9 +29,6 @@ typedef std::function<void(GLint id)> field_handler;
 class program {
 public:
     program();
-    program(const program& src);
-    program& operator=(const program& src);
-    ~program();
 
     program& add(const shader& src);
 
