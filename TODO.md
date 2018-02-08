@@ -7,13 +7,13 @@
 #### [x] program `[class program]`
 ### Shaders `[glsl]`
 #### [x] vertex shader
-#### [ ] fragment shader
+#### [x] fragment shader
 ### MVP helpers `[mvp::]`
 #### [x] actions `[action::]`
 #### [x] projections `[projection::]`
 #### [x] camera `[class camera]`
 ### Texture handler
-#### `[x]` texture `[class texture]`
+#### [x] texture `[class texture]`
 ### Geometric objects `[geometry]`
 #### [x] Base class `[geometric_object]`
 #### [x] grid `[class grid]`
@@ -29,8 +29,8 @@
 ## Test
 #### [x] matrix
 #### [x] vector
-#### [ ] shader::shader
-#### [ ] shader::program
+#### [x] shader::shader
+#### [x] shader::program
 #### [ ] vertex shader
 #### [ ] fragment shader
 #### [ ] mvp::actions
