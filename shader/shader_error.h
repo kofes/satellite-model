@@ -7,7 +7,7 @@
 
 namespace glsl {
 namespace shader {
-class error {
+class error: public std::exception {
 public:
     error(GLint code, const std::string &what) :
             m_code(code), m_what(what) {};
