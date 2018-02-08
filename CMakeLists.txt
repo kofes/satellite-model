@@ -8,7 +8,9 @@ add_subdirectory(mat-vec)
 include_directories(mat-vec/inc)
 
 # add mvp
-file(GLOB MVP_SRC_FILES mvp/*.h mvp/*.cpp)
+file(GLOB MVP_SRC_FILES
+        mvp/*.h mvp/*.cpp
+        mvp/*/*.h mvp/*/*.cpp)
 include_directories(mvp/camera)
 include_directories(mvp/actions)
 include_directories(mvp/projections)
