@@ -4,7 +4,7 @@
 namespace mvp {
 namespace action {
 linear_algebra::Matrix translate(const linear_algebra::Vector& move) {
-    if (move.size() != 3)
+    if (move.size() < 3)
         return linear_algebra::Matrix();
     return {
             {1, 0, 0, move[0]},
@@ -15,7 +15,7 @@ linear_algebra::Matrix translate(const linear_algebra::Vector& move) {
 }
 
 linear_algebra::Matrix rotate(const linear_algebra::Vector& axis, double degree) {
-    if (axis.size() != 3)
+    if (axis.size() < 3)
         return linear_algebra::Matrix();
     degree -= ((int)degree / 360) * 360;
     double c = std::cos(degree * M_PI / 180);
@@ -30,7 +30,7 @@ linear_algebra::Matrix rotate(const linear_algebra::Vector& axis, double degree)
 }
 
 linear_algebra::Matrix scale(const linear_algebra::Vector& scale) {
-    if (axis.size() != 3)
+    if (scale.size() < 3)
         return linear_algebra::Matrix();
     return {
             {scale[0],    0    ,    0    , 0},
