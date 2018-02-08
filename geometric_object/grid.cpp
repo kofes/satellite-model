@@ -91,6 +91,11 @@ grid& grid::bitangent(GLuint) {
     return *this;
 }
 
+object& grid::color(GLuint) {
+
+    return *this;
+}
+
 grid& grid::texture(GLuint) {
     return *this;
 }

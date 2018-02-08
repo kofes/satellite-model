@@ -24,6 +24,7 @@ public:
 
     virtual object& bitangent(GLuint) = 0;
 
+    virtual object& color(GLuint) = 0;
     virtual object& texture(GLuint) = 0;
 
     virtual GLuint vao() const {
@@ -43,6 +44,7 @@ protected:
             {"normal",    GL_MAX_VERTEX_ATTRIBS},
             {"tangent",   GL_MAX_VERTEX_ATTRIBS},
             {"bitangent", GL_MAX_VERTEX_ATTRIBS},
+            {"color",     GL_MAX_VERTEX_ATTRIBS},
             {"texture",   GL_MAX_VERTEX_ATTRIBS}
     };
 
