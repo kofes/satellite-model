@@ -4,10 +4,10 @@
 namespace mvp {
 struct Camera::Core {
     Core():
-            m_fovy(75.),
-            m_as(1.),
-            m_near(.1),
-            m_far(100.)
+            m_fovy(75.f),
+            m_as(1.4f),
+            m_near(.5f),
+            m_far(100.f)
     {}
 
     Core(double fovy, double as, double near, double far):
@@ -17,9 +17,9 @@ struct Camera::Core {
             m_far(far)
     {};
 
-    linear_algebra::Vector m_pos = {.5, -1.5, 0};
+    linear_algebra::Vector m_pos = {0, .5, -1.5};
     double m_fovy, m_as, m_near, m_far;
-    double m_speed = .1, m_yaw = 0, m_pitch = M_PI;
+    double m_speed = .1, m_yaw = 0, m_pitch = 180;
 };
 
 Camera::Camera(): m_core(new Core) {};
@@ -28,7 +28,7 @@ Camera::Camera(double fovy, double as, double near, double far):
         m_core(new Core(fovy, as, near, far))
 {}
 
-Camera::operator linear_algebra::Matrix() {
+linear_algebra::Matrix Camera::model() {
     linear_algebra::Vector up = this->up();
     linear_algebra::Vector target = this->target();
     linear_algebra::Vector side = this->side();
@@ -44,13 +44,12 @@ Camera::operator linear_algebra::Matrix() {
             {  0   , 0,  (far + near) / (near - far) , 2 * far * near / (near - far)},
             {  0   , 0,              -1              ,               0              }
     };
-    linear_algebra::Matrix result = {
-            {  side[0],   side[1],   side[2], - m_core->m_pos *   side},
-            {    up[0],     up[1],     up[2], - m_core->m_pos *     up},
-            {target[0], target[1], target[2], - m_core->m_pos * target},
-            {        0,         0,         0,                        1}
-    };
-    return result * perspective;
+    return linear_algebra::Matrix {
+            {side[0], up[2], target[0], 0},
+            {side[1], up[1], target[1], 0},
+            {side[2], up[3], target[2], 0},
+            {- m_core->m_pos * side, - m_core->m_pos * up, - m_core->m_pos * target, 1}
+    } * perspective;
 }
 
 Camera& Camera::move(const linear_algebra::Vector&& vec) {
@@ -92,6 +91,7 @@ Camera& Camera::pitch(double degree) {
     degree -= ((int)degree / 360) * 360;
     if (90 < degree && degree < 180 || 180 < degree && degree < 270)
         degree = degree > 180 ? 270 : 90;
+    std::cout << "PITCH: " << degree << std::endl;
     m_core->m_pitch = degree;
 }
 
@@ -105,6 +105,10 @@ Camera& Camera::zoom(double px) {
     m_core->m_fovy += px;
     if (m_core->m_fovy < 73.2) m_core->m_fovy = 73.2;
     if (m_core->m_fovy > 75.3) m_core->m_fovy = 75.3;
+}
+
+const linear_algebra::Vector& Camera::position() const {
+    return m_core->m_pos;
 }
 
 double Camera::speed() const {

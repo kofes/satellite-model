@@ -10,7 +10,7 @@ public:
 
     Camera(double fovy, double as, double near, double far);
 
-    explicit operator linear_algebra::Matrix();
+    linear_algebra::Matrix model();
 
     Camera& move(const linear_algebra::Vector&& vec);
 
@@ -25,6 +25,8 @@ public:
     Camera& yaw(double degree);
 
     Camera& zoom(double px);
+
+    const linear_algebra::Vector& position() const;
 
     double speed() const;
 
