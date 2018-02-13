@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sstream>
 #include <math_model/Orbit.h>
+#include <geometric_object/solids/solids.h>
+#include <geometric_object/triangle.h>
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 
@@ -94,7 +96,7 @@ int init(int argc, char* argv[]) {
     glutCreateWindow(title.c_str());
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+//    glEnable(GL_CULL_FACE);
     glEnable(GL_LESS);
 
     glewExperimental = GL_TRUE;
@@ -246,9 +248,18 @@ void render() {
     // VP matrix
     linear_algebra::Matrix vp = camera.model();
 
-// Grid
-    geometry::grid(270)
+    geometry::grid(100)
             .vertex(shmap["obj_position"])
+            .model(shmap["model"])
+            .mvp(shmap["mvp"])
+            .sampler_selector(shmap["select_samplers"])
+            .material_ambient(shmap["material_ambient"])
+            .material_emission(shmap["material_emission"])
+            .material_shininess(shmap["material_shininess"])
+            .render(vp);
+    geometry::triangle({-1.5,1.5,1.5}, {-1.5,0,0}, {0,0,1.5})
+            .vertex(shmap["obj_position"])
+            .normal(shmap["obj_normal"])
             .model(shmap["model"])
             .mvp(shmap["mvp"])
             .sampler_selector(shmap["select_samplers"])
