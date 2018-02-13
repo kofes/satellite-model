@@ -38,7 +38,7 @@ public:
 
     GLint get(const std::string& name, field type);
 
-    program& operator()(const std::string& name, field type, field_handler handler);
+    program& link(const std::string& name, field type, GLuint& id);
 private:
     class core;
 

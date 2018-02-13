@@ -16,7 +16,6 @@ program::program(): m_core(new program::core) {
 
 program &program::add(const shader &src) {
     glAttachShader(m_core->id, src.id());
-
     return *this;
 }
 
@@ -41,17 +40,18 @@ GLuint program::id() const {
 }
 
 GLint program::get(const std::string &name, field type) {
-    switch (type) {
-        case field::attribute: return glGetAttribLocation(m_core->id, name.c_str());
-        case field::uniform: return glGetUniformLocation(m_core->id, name.c_str());
-    }
-}
-
-program &program::operator()(const std::string &name, field type, field_handler handler) {
     GLint id;
-    handler(id = get(name, type));
+    switch (type) {
+        case field::attribute: id = glGetAttribLocation(m_core->id, name.c_str()); break;
+        case field::uniform: id = glGetUniformLocation(m_core->id, name.c_str()); break;
+    }
     if (id == -1)
         SHADER_PROGRAM_LOGout << "bad shader field name " << name << '\n';
+    return id;
+}
+
+program& program::link(const std::string& name, field type, GLuint& id) {
+    id = get(name, type);
     return *this;
 }
 }
