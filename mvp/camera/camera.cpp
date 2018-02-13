@@ -44,12 +44,13 @@ linear_algebra::Matrix Camera::model() {
             {  0   , 0,  (far + near) / (near - far) , 2 * far * near / (near - far)},
             {  0   , 0,              -1              ,               0              }
     };
-    return linear_algebra::Matrix {
-            {side[0], up[2], target[0], 0},
+    linear_algebra::Matrix view = {
+            {side[0], up[0], target[0], 0},
             {side[1], up[1], target[1], 0},
-            {side[2], up[3], target[2], 0},
+            {side[2], up[2], target[2], 0},
             {- m_core->m_pos * side, - m_core->m_pos * up, - m_core->m_pos * target, 1}
-    } * perspective;
+    };
+    return view * perspective;
 }
 
 Camera& Camera::move(const linear_algebra::Vector&& vec) {
@@ -62,7 +63,7 @@ linear_algebra::Vector Camera::target() {
     double pitch = m_core->m_pitch * M_PI / 180;
     return {
             std::sin(yaw) * std::cos(pitch),
-            std::sin(- pitch),
+            - std::sin(pitch),
             std::cos(yaw) * std::cos(pitch)
     };
 }
@@ -78,33 +79,30 @@ linear_algebra::Vector Camera::up() {
 }
 
 linear_algebra::Vector Camera::side() {
-    double yaw = m_core->m_yaw * M_PI / 180;
-    return {
-            std::cos(yaw),
-            0,
-            std::sin(- yaw)
-    };
+    return linear_algebra::vectorMultiply({up(), target()});
 }
 
 Camera& Camera::pitch(double degree) {
     degree += m_core->m_pitch + 360;
-    degree -= ((int)degree / 360) * 360;
+    degree -= ((int)degree / 360) * 360 + 180;
     if (90 < degree && degree < 180 || 180 < degree && degree < 270)
         degree = degree > 180 ? 270 : 90;
-    std::cout << "PITCH: " << degree << std::endl;
-    m_core->m_pitch = degree;
+    m_core->m_pitch = degree + 180;
+    return *this;
 }
 
 Camera& Camera::yaw(double degree) {
     degree += m_core->m_yaw + 360;
     degree -= ((int)degree / 360) * 360;
     m_core->m_yaw = degree;
+    return *this;
 }
 
 Camera& Camera::zoom(double px) {
     m_core->m_fovy += px;
     if (m_core->m_fovy < 73.2) m_core->m_fovy = 73.2;
     if (m_core->m_fovy > 75.3) m_core->m_fovy = 75.3;
+    return *this;
 }
 
 const linear_algebra::Vector& Camera::position() const {
