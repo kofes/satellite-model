@@ -3,12 +3,66 @@ project(Satellite)
 
 set(CMAKE_CXX_STANDARD 11)
 
+# add mat-vec library with headers
 add_subdirectory(mat-vec)
-
 include_directories(mat-vec/inc)
 
+# add mvp
+file(GLOB MVP_SRC_FILES
+        mvp/*.h mvp/*.cpp
+        mvp/*/*.h mvp/*/*.cpp)
+
+# add OpenGL
+find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
+find_package(GLEW REQUIRED)
+include_directories(
+        ${OPENGL_INCLUDE_DIRS}
+        ${GLUT_INCLUDE_DIRS}
+        ${GLEW_INCLUDE_DIRS}
+)
+
+if(NOT ${OPENGL_FOUND})
+    message("OpenGL not found")
+endif()
+
+# add shader helpers
+file(GLOB SHADER_SRC_FILES shader/*.h shader/*.cpp)
+
+# add geometric objects
+file(GLOB GEOMETRIC_OBJ_SRC_FILES
+        geometric_object/*.h geometric_object/*.cpp
+        geometric_object/*/*.h geometric_object/*/*.cpp)
+
+# add SOIL
+add_subdirectory(soil)
+include_directories(soil/inc)
+
+# add texture helper
+set(TEXTURE_SRC_FILES texture/texture.h texture/texture.cpp)
+
+# add math models
+file(GLOB MATH_MODELS_SRC_FILES math_model/*.h math_model/*.cpp)
+
+# set helpers
 set(HELPERS args_serializer.h)
 
-add_executable(Satellite ${HELPERS} main.cpp)
+# include root
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(Satellite linear_algebra)
+# compose executable
+add_executable(Satellite
+        ${MVP_SRC_FILES}
+        ${SHADER_SRC_FILES}
+        ${GEOMETRIC_OBJ_SRC_FILES}
+        ${TEXTURE_SRC_FILES}
+        ${MATH_MODELS_SRC_FILES}
+        ${HELPERS}
+        main.cpp)
+
+target_link_libraries(Satellite
+        ${OPENGL_LIBRARIES}
+        ${GLUT_LIBRARY}
+        ${GLEW_LIBRARIES}
+        soil
+        linear_algebra)
