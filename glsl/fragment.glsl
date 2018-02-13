@@ -2,11 +2,12 @@
 
 /// camera
 in vec3 camera_normal;
+
 /// light
 in vec3 light_normal;
 in float light_distance;
 
-vec3 scene_ambient = vec3(0.2, 0.2, 0.2);
+vec3 scene_ambient = vec3(.2, .2, .2);
 uniform vec3 light_diffuse;
 uniform vec3 light_specular;
 
@@ -17,6 +18,7 @@ uniform float attenuation_quadratic;
 uniform vec3 spot_normal;
 uniform float spot_cutoff;
 uniform float spot_exponent;
+
 /// material
 in vec3 material_normal;
 
@@ -25,6 +27,7 @@ uniform vec3 material_diffuse;
 uniform vec3 material_specular;
 uniform vec3 material_emission;
 uniform float material_shininess;
+
 /// texture
 in vec2 texture_uv;
 
@@ -33,8 +36,6 @@ uniform bool select_samplers;
 uniform sampler2D normal_sampler;
 uniform sampler2D diffuse_sampler;
 uniform sampler2D specular_sampler;
-
-out vec4 out_color;
 
 void main() {
     vec3 total_light = material_emission + scene_ambient * material_ambient;
@@ -85,5 +86,5 @@ void main() {
         total_light += diffuse_reflection + specular_reflection;
     }
     // end of cycle
-    out_color = vec4(total_light, 1.0);
+    gl_FragColor = vec4(total_light, 1);
 }
