@@ -3,6 +3,7 @@
 #include <math_model/Orbit.h>
 #include <geometric_object/solids/solids.h>
 #include <geometric_object/triangle.h>
+#include <geometric_object/square.h>
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 
@@ -258,6 +259,19 @@ void render() {
             .material_shininess(shmap["material_shininess"])
             .render(vp);
     geometry::triangle({-1.5,1.5,1.5}, {-1.5,0,0}, {0,0,1.5})
+            .vertex(shmap["obj_position"])
+            .normal(shmap["obj_normal"])
+            .model(shmap["model"])
+            .mvp(shmap["mvp"])
+            .sampler_selector(shmap["select_samplers"])
+            .material_ambient(shmap["material_ambient"])
+            .material_diffuse(shmap["material_diffuse"])
+            .material_specular(shmap["material_specular"])
+            .material_emission(shmap["material_emission"])
+            .material_shininess(shmap["material_shininess"])
+            .render(vp);
+
+    geometry::quadrilateral({-1.5,0,1.5}, {1.5,0,1.5}, {1.5,0,-1.5}, {-1.5,0,-1.5})
             .vertex(shmap["obj_position"])
             .normal(shmap["obj_normal"])
             .model(shmap["model"])
