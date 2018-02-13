@@ -12,18 +12,7 @@ public:
 
     grid& count(std::size_t count);
 
-    grid& recompute() override;
-
-    grid& render() override;
-
-    grid& vertex(GLuint) override;
-    grid& normal(GLuint) override;
-    grid& tangent(GLuint) override;
-
-    grid& bitangent(GLuint) override;
-
-    grid& color(GLuint) override;
-    grid& texture(GLuint) override;
+    grid& render(const linear_algebra::Matrix& vp) override;
 
 private:
     class core;
