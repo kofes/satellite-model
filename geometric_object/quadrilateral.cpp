@@ -1,5 +1,5 @@
 #include <mvp/actions/actions.h>
-#include "square.h"
+#include "quadrilateral.h"
 
 namespace geometry {
 class quadrilateral::core {
