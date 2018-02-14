@@ -12,6 +12,8 @@ public:
 
     double mass() const;
     double R() const;
+    double eR() const;
+    double pR() const;
     const linear_algebra::Vector& position() const;
 
     linear_algebra::Matrix model() const;
