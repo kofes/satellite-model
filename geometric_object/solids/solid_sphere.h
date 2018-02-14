@@ -20,6 +20,8 @@ public:
 
     sphere& color(uint8_t r, uint8_t g, uint8_t b);
 
+    sphere& show_normals(const linear_algebra::Matrix& vp) override;
+
     sphere& render(const linear_algebra::Matrix& vp) override;
 
 private:

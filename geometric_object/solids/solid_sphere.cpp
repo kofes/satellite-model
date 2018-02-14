@@ -1,4 +1,5 @@
 #include <mvp/actions/actions.h>
+#include <geometric_object/line.h>
 #include "solid_sphere.h"
 
 namespace geometry {
@@ -94,6 +95,40 @@ sphere& sphere::color(uint8_t r, uint8_t g, uint8_t b) {
         m_core->ambient[i] *= color[i];
         m_core->emission[i] *= color[i];
     }
+    return *this;
+}
+
+sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
+    linear_algebra::Matrix model =
+            m_core->rotate.inv() *
+            mvp::action::scale(m_core->scale * m_core->radius * 1.5) *
+            mvp::action::translate(m_core->position).T();
+    for (uint8_t i = 0; i < 3; ++i)
+        geometry::line(linear_algebra::Vector {
+                m_core->position[0],
+                m_core->position[1],
+                m_core->position[2]
+        }, linear_algebra::Vector {
+                model[0][i] + m_core->position[0],
+                model[1][i] + m_core->position[1],
+                model[2][i] + m_core->position[2],
+        })
+                .vertex(attr["vertex"])
+                .model(attr["model"])
+                .mvp(attr["mvp"])
+                .sampler_selector(attr["sampler_selector"])
+                .material_ambient(attr["material_ambient"])
+                .material_diffuse(attr["material_diffuse"])
+                .material_specular(attr["material_specular"])
+                .material_emission(attr["material_emission"])
+                .material_shininess(attr["material_shininess"])
+                .color(
+                        (i == 0)*255,
+                        (i == 1)*255,
+                        (i == 2)*255
+                )
+                .render(vp);
+    return *this;
 }
 
 sphere &sphere::render(const linear_algebra::Matrix &vp) {
@@ -154,9 +189,6 @@ sphere &sphere::render(const linear_algebra::Matrix &vp) {
 
     linear_algebra::Matrix mvp = model * vp;
 
-    std::cout << "MVP:\n" << mvp << '\n'
-              << "Model:\n" << model << std::endl;
-
     float flat_matrix[16] = {0};
 
  	for (size_t i = 0; i < 4; ++i)
@@ -184,6 +216,7 @@ sphere &sphere::render(const linear_algebra::Matrix &vp) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    return *this;
 }
 }
 }
