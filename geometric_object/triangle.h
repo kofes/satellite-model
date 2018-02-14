@@ -15,6 +15,10 @@ public:
         const linear_algebra::Vector& C
     );
 
+    triangle& scale(const linear_algebra::Vector& scale);
+    triangle& translate(const linear_algebra::Vector& move);
+    triangle& rotate(const linear_algebra::Vector& axis, double degree);
+
     triangle& render(const linear_algebra::Matrix& vp) override;
 
 private:

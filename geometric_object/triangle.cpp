@@ -6,9 +6,12 @@ class triangle::core {
 public:
     core() = default;
 
-    float positions[3 * 3];
+    float vertices[3 * 3];
     float normals[3 * 3];
-    linear_algebra::Vector position = {0,0,0,1};
+
+    linear_algebra::Vector position = {0, 0, 0, 1};
+    linear_algebra::Vector scale = {1, 1, 1, 1};
+    linear_algebra::Matrix rotate = linear_algebra::Matrix::eye(4, 1);
 
     float diffuse[3] = {0.5, 0.5, 0.5};
     float specular[3] = {1.f, 1.f, 1.f};
@@ -23,9 +26,9 @@ triangle::triangle(
         const linear_algebra::Vector& C
 ) : m_core(new triangle::core) {
     for (size_t i = 0; i < 3; ++i) {
-        m_core->positions[i + 0] = A[i];
-        m_core->positions[i + 3] = B[i];
-        m_core->positions[i + 6] = C[i];
+        m_core->vertices[i + 0] = A[i];
+        m_core->vertices[i + 3] = B[i];
+        m_core->vertices[i + 6] = C[i];
     }
     linear_algebra::Vector normA = linear_algebra::vectorMultiply({B - A, C - A}).normalize();
     linear_algebra::Vector normB = linear_algebra::vectorMultiply({C - B, A - B}).normalize();
@@ -37,6 +40,19 @@ triangle::triangle(
     }
 }
 
+triangle& triangle::scale(const linear_algebra::Vector& scale) {
+    m_core->scale = mvp::action::scale(scale) * m_core->scale;
+    return *this;
+}
+triangle& triangle::translate(const linear_algebra::Vector& move) {
+    m_core->position = mvp::action::translate(move) * m_core->position;
+    return *this;
+}
+triangle& triangle::rotate(const linear_algebra::Vector& axis, double degree) {
+    m_core->rotate = mvp::action::rotate(axis, degree) * m_core->rotate;
+    return *this;
+}
+
 triangle& triangle::render(const linear_algebra::Matrix& vp) {
     glBindVertexArray(m_vao);
 
@@ -45,7 +61,7 @@ triangle& triangle::render(const linear_algebra::Matrix& vp) {
     glGenBuffers(1, &vbo["vertex"]);
     glBindBuffer(GL_ARRAY_BUFFER, vbo["vertex"]);
 
-    glBufferData(GL_ARRAY_BUFFER, (3 * 3) * sizeof(float), m_core->positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (3 * 3) * sizeof(float), m_core->vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(attr["vertex"], 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(attr["vertex"]);
 
@@ -70,7 +86,11 @@ triangle& triangle::render(const linear_algebra::Matrix& vp) {
 
     glUniform1i(attr["sampler_selector"], false);
 
-    linear_algebra::Matrix model = mvp::action::translate(m_core->position).T();
+    linear_algebra::Matrix model =
+            m_core->rotate *
+            mvp::action::scale(m_core->scale) *
+            mvp::action::translate(m_core->position).T();
+
     linear_algebra::Matrix mvp = model * vp;
 
     float flat_matrix[16] = {0};
