@@ -1,5 +1,5 @@
 #pragma once
 
 #include "grid.h"
-#include "square.h"
+#include "quadrilateral.h"
 #include "solids.h"
