@@ -79,6 +79,10 @@ public:
         return *this;
     }
 
+    virtual object& color(uint8_t r, uint8_t g, uint8_t b) {return *this;}
+
+    virtual object& show_normals(const linear_algebra::Matrix& vp) {return *this;}
+
     virtual object& recompute() {return *this;}
 
     virtual object& render(const linear_algebra::Matrix& vp) {return *this;}
