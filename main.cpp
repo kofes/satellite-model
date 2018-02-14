@@ -3,7 +3,7 @@
 #include <math_model/Orbit.h>
 #include <geometric_object/solids/solids.h>
 #include <geometric_object/triangle.h>
-#include <geometric_object/square.h>
+#include <geometric_object/quadrilateral.h>
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 
@@ -164,8 +164,12 @@ int init(int argc, char* argv[]) {
     return 0;
 }
 
+int init_geometry();
+
 int renderer(int argc, char* argv[]) {
     init(argc, argv);
+
+    init_geometry();
 
     // Bind engine functions
     glutKeyboardFunc(keyboard_handler);
@@ -223,6 +227,20 @@ void mouse_motion_handler(int x, int y) {
     mouse_pos[1] = y;
 }
 
+
+//static std::shared_ptr<geometry::triangle> triangle;
+static std::shared_ptr<math::model::Orbit> orbit;
+static std::list<std::shared_ptr<geometry::object>> objects;
+
+int init_geometry() {
+    orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit(
+            {6371e+3 + 650e+3, 0, 0},
+            {0, 7190, 0}
+    ));
+//    triangle = std::shared_ptr<geometry::triangle>(new geometry::triangle({-1.5,1.5,1.5}, {-1.5,0,0}, {0,0,1.5}));
+    return 0;
+}
+
 void idle_handler() {
     for (const auto& pr: keymap)
         if (pr.second) switch (pr.first) {
@@ -240,6 +258,8 @@ void idle_handler() {
                      camera.position()[0],
                      camera.position()[1],
                      camera.position()[2]);
+    orbit->move_satellite(100);
+    orbit->render(objects);
     glutPostRedisplay();
 }
 
@@ -249,17 +269,18 @@ void render() {
     // VP matrix
     linear_algebra::Matrix vp = camera.model();
 
-    geometry::grid(100)
-            .vertex(shmap["obj_position"])
-            .model(shmap["model"])
-            .mvp(shmap["mvp"])
-            .sampler_selector(shmap["select_samplers"])
-            .material_ambient(shmap["material_ambient"])
-            .material_emission(shmap["material_emission"])
-            .material_shininess(shmap["material_shininess"])
-            .render(vp);
-    geometry::triangle({-1.5,1.5,1.5}, {-1.5,0,0}, {0,0,1.5})
-            .vertex(shmap["obj_position"])
+//    geometry::grid(100)
+//            .vertex(shmap["obj_position"])
+//            .model(shmap["model"])
+//            .mvp(shmap["mvp"])
+//            .sampler_selector(shmap["select_samplers"])
+//            .material_ambient(shmap["material_ambient"])
+//            .material_emission(shmap["material_emission"])
+//            .material_shininess(shmap["material_shininess"])
+//            .render(vp);
+    for (auto& object: objects)
+        object->
+            vertex(shmap["obj_position"])
             .normal(shmap["obj_normal"])
             .model(shmap["model"])
             .mvp(shmap["mvp"])
@@ -271,18 +292,45 @@ void render() {
             .material_shininess(shmap["material_shininess"])
             .render(vp);
 
-    geometry::quadrilateral({-1.5,0,1.5}, {1.5,0,1.5}, {1.5,0,-1.5}, {-1.5,0,-1.5})
-            .vertex(shmap["obj_position"])
-            .normal(shmap["obj_normal"])
-            .model(shmap["model"])
-            .mvp(shmap["mvp"])
-            .sampler_selector(shmap["select_samplers"])
-            .material_ambient(shmap["material_ambient"])
-            .material_diffuse(shmap["material_diffuse"])
-            .material_specular(shmap["material_specular"])
-            .material_emission(shmap["material_emission"])
-            .material_shininess(shmap["material_shininess"])
-            .render(vp);
+//    geometry::solid::sphere(1, 32, 32)
+//            .scale({0.1, 0.1, 0.1})
+//            .translate({0, 0.25, 0})
+//            .vertex(shmap["obj_position"])
+//            .normal(shmap["obj_normal"])
+//            .model(shmap["model"])
+//            .mvp(shmap["mvp"])
+//            .sampler_selector(shmap["select_samplers"])
+//            .material_ambient(shmap["material_ambient"])
+//            .material_diffuse(shmap["material_diffuse"])
+//            .material_specular(shmap["material_specular"])
+//            .material_emission(shmap["material_emission"])
+//            .material_shininess(shmap["material_shininess"])
+//            .render(vp);
+//    triangle->rotate({1, 0, 0}, 1)
+//            .vertex(shmap["obj_position"])
+//            .normal(shmap["obj_normal"])
+//            .model(shmap["model"])
+//            .mvp(shmap["mvp"])
+//            .sampler_selector(shmap["select_samplers"])
+//            .material_ambient(shmap["material_ambient"])
+//            .material_diffuse(shmap["material_diffuse"])
+//            .material_specular(shmap["material_specular"])
+//            .material_emission(shmap["material_emission"])
+//            .material_shininess(shmap["material_shininess"])
+//            .render(vp);
+//
+//    geometry::quadrilateral({-1.5,0,1.5}, {1.5,0,1.5}, {1.5,0,-1.5}, {-1.5,0,-1.5})
+//            .vertex(shmap["obj_position"])
+//            .normal(shmap["obj_normal"])
+//            .model(shmap["model"])
+//            .mvp(shmap["mvp"])
+//            .sampler_selector(shmap["select_samplers"])
+//            .material_ambient(shmap["material_ambient"])
+//            .material_diffuse(shmap["material_diffuse"])
+//            .material_specular(shmap["material_specular"])
+//            .material_emission(shmap["material_emission"])
+//            .material_shininess(shmap["material_shininess"])
+//            .render(vp);
 
     glUseProgram(0);
     glutSwapBuffers();
