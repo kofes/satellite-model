@@ -10,6 +10,12 @@ public:
             -1.f, 0.f, -1.f,
             -1.f, 0.f, +1.f
     };
+    linear_algebra::Vector position = {0,0,0,1};
+
+
+    float ambient[3] = {0, .5, .7};
+    float emission[3] = {.5, .5, .5};
+    float shininess = 1.f;
 };
 
 grid::grid(std::size_t count):
@@ -78,12 +84,17 @@ grid& grid::render(const linear_algebra::Matrix& vp) {
             flat_matrix[i*4 + j] = i == j;
     glUniformMatrix4fv(attr["model"], 1, GL_FALSE, flat_matrix);
 
-    glUniform1i(attr["sampler_selector"], true);
-    glUniform3f(attr["material_ambient"], 0, .5, .7);
-    glUniform3f(attr["material_diffuse"], 0.5, 0.5, 0.5);
-    glUniform3f(attr["material_specular"], 1.f, 1.f, 1.f);
-    glUniform3f(attr["material_emission"], .5, .5, .5);
-    glUniform1f(attr["material_shininess"], 3.f);
+    glUniform1i(attr["sampler_selector"], false);
+
+    glUniform3f(attr["material_ambient"],
+                m_core->ambient[0],
+                m_core->ambient[1],
+                m_core->ambient[2]);
+    glUniform3f(attr["material_emission"],
+                m_core->emission[0],
+                m_core->emission[1],
+                m_core->emission[2]);
+    glUniform1f(attr["material_shininess"], m_core->shininess);
 
     glDrawArrays(GL_LINES, 0, 3 * 2 * count * 2);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
