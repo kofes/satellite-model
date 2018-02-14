@@ -77,11 +77,14 @@ void main() {
         /// specular
         // Texture: change camera & reflect position in dot operation!
         float clamp_specular = clamp(dot(reflect(-light_normal, normal), camera_normal), 0, 1);
+        float specular_pow = 1;
+        if (material_shininess >= 0 && clamp_specular > 0)
+            specular_pow = pow(clamp_specular, material_shininess);
         vec3 specular_reflection =
              attenuation *
              light_specular *
              specular *
-             pow(clamp_specular, material_shininess);
+             specular_pow;
 
         total_light += diffuse_reflection + specular_reflection;
     }
