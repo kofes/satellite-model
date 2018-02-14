@@ -17,7 +17,7 @@ struct Camera::Core {
             m_far(far)
     {};
 
-    linear_algebra::Vector m_pos = {0, .5, -1.5};
+    linear_algebra::Vector m_pos = {0, 0, 0};
     double m_fovy, m_as, m_near, m_far;
     double m_speed = .1, m_yaw = 0, m_pitch = 180;
 };
