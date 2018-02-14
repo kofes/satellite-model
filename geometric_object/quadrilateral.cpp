@@ -8,7 +8,10 @@ public:
 
     float vertices[4 * 3];
     float normals[4 * 3];
-    linear_algebra::Vector position = {0,0,0,1};
+
+    linear_algebra::Vector position = {0, 0, 0, 1};
+    linear_algebra::Vector scale = {1, 1, 1, 1};
+    linear_algebra::Matrix rotate = linear_algebra::Matrix::eye(4, 1);
 
     float diffuse[3] = {0.5, 0.5, 0.5};
     float specular[3] = {1.f, 1.f, 1.f};
@@ -38,6 +41,19 @@ quadrilateral::quadrilateral(
         m_core->normals[i + 6] = normC[i];
         m_core->normals[i + 9] = normD[i];
     }
+}
+
+quadrilateral& quadrilateral::scale(const linear_algebra::Vector& scale) {
+    m_core->scale = mvp::action::scale(scale) * m_core->scale;
+    return *this;
+}
+quadrilateral& quadrilateral::translate(const linear_algebra::Vector& move) {
+    m_core->position = mvp::action::translate(move) * m_core->position;
+    return *this;
+}
+quadrilateral& quadrilateral::rotate(const linear_algebra::Vector& axis, double degree) {
+    m_core->rotate = mvp::action::rotate(axis, degree) * m_core->rotate;
+    return *this;
 }
 
 quadrilateral& quadrilateral::render(const linear_algebra::Matrix& vp) {
@@ -80,7 +96,11 @@ quadrilateral& quadrilateral::render(const linear_algebra::Matrix& vp) {
 
     glUniform1i(attr["sampler_selector"], false);
 
-    linear_algebra::Matrix model = mvp::action::translate(m_core->position).T();
+    linear_algebra::Matrix model =
+            m_core->rotate *
+            mvp::action::scale(m_core->scale) *
+            mvp::action::translate(m_core->position).T();
+
     linear_algebra::Matrix mvp = model * vp;
 
     float flat_matrix[16] = {0};

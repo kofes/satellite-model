@@ -16,6 +16,10 @@ namespace geometry {
                 const linear_algebra::Vector& D
         );
 
+        quadrilateral& scale(const linear_algebra::Vector& scale);
+        quadrilateral& translate(const linear_algebra::Vector& move);
+        quadrilateral& rotate(const linear_algebra::Vector& axis, double degree);
+
         quadrilateral& render(const linear_algebra::Matrix& vp) override;
 
     private:
