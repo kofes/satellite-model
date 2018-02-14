@@ -81,7 +81,7 @@ public:
 
     virtual object& recompute() {return *this;}
 
-    virtual object& render(const linear_algebra::Matrix& vp) = 0;
+    virtual object& render(const linear_algebra::Matrix& vp) {return *this;}
 
     GLuint vao() const {
         return m_vao;
