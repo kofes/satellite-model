@@ -6,6 +6,8 @@
 //#define ORBIT_DBG
 
 #include <iostream>
+#include <geometric_object/solids/solids.h>
+
 #ifdef ORBIT_DBG
 #define Orbit_DBGout (std::cout << "Orbit DBG: ")
 #define Orbit_out (std::cout)
@@ -26,7 +28,7 @@ public:
     double e;
     double T, time, t; // sec
     double nu; // rad
-    linear_algebra::Vector norm;
+    linear_algebra::Vector norm, tangent, bitangent;
 
     double movement_integral(double dt) {
         double du = nu + dt/T;
@@ -62,12 +64,8 @@ Orbit::Orbit(
         const linear_algebra::Vector& satellite_start_speed
 ) : m_core(new Orbit::core) {
     // initialize Satellite position
-    m_core->satellite.move(m_core->earth.position() - linear_algebra::Vector{0, 0, 0, 1});
+    m_core->satellite.move(m_core->earth.position());
     m_core->satellite.move(satellite_start_point);
-
-    // initialize normal
-    m_core->norm = linear_algebra::vectorMultiply({satellite_start_point, satellite_start_speed}).normalize();
-    Orbit_DBGout << "norm = " << m_core->norm << std::endl;
 
     // initialize mu
     m_core->mu = m_core->G * (m_core->earth.mass() + m_core->satellite.mass());
@@ -93,6 +91,18 @@ Orbit::Orbit(
      * if start_speed == circle_speed, then we have circle!!!
      * if start_speed <  circle_speed, then 'apogei' at start_point
      */
+
+    // initialize normal
+    m_core->norm = linear_algebra::vectorMultiply({satellite_start_point, satellite_start_speed}).normalize();
+    Orbit_DBGout << "norm = " << m_core->norm << std::endl;
+
+    // initialize e_r
+    m_core->bitangent = satellite_start_point.normalize();
+    Orbit_DBGout << "e_r = " << m_core->bitangent << std::endl;
+
+    // initialize e_t
+    m_core->tangent = (start_speed > circle_speed ? -1 : 1) * satellite_start_speed.normalize();
+    Orbit_DBGout << "e_t = " << m_core->tangent << std::endl;
 
     double r_1 = 2 * a - distance;
 
@@ -125,13 +135,6 @@ Orbit& Orbit::move_satellite(double dt) {
     linear_algebra::Vector r = m_core->satellite.position() - m_core->earth.position();
     Orbit_DBGout << "r = " << r << " m" << std::endl;
 
-    linear_algebra::Vector e_r = r.normalize();
-    e_r.resize(3);
-    Orbit_DBGout << "e_r = " << e_r << std::endl;
-
-    linear_algebra::Vector e_t = linear_algebra::vectorMultiply({m_core->norm, e_r});
-    Orbit_DBGout << "e_t = " << e_t << std::endl;
-
     m_core->t = (m_core->t + dt) - (int)((m_core->t + dt) / m_core->T) * m_core->T;
     Orbit_DBGout << "time = " << m_core->t << std::endl;
 
@@ -150,22 +153,32 @@ Orbit& Orbit::move_satellite(double dt) {
     Orbit_DBGout << "sin(nu(E)) = " << s_nu << std::endl;
     Orbit_DBGout << "1 = " << s_nu*s_nu + c_nu * c_nu << std::endl;
 
-
     linear_algebra::Vector dr =
-            mvp::action::rotate(m_core->norm, 0) *
-            sclr_r * linear_algebra::Vector {c_nu, s_nu, 0, 1/sclr_r};
+            linear_algebra::Matrix {
+                    {m_core->bitangent[0], m_core->bitangent[1], m_core->bitangent[2], 0},
+                    {  m_core->tangent[0],   m_core->tangent[1],   m_core->tangent[2], 0},
+                    {     m_core->norm[0],      m_core->norm[1],      m_core->norm[2], 0},
+                    {                  0 ,                   0,                    0 , 1}
+            } *
+            linear_algebra::Vector {sclr_r * c_nu, sclr_r * s_nu, 0, 1} - r;
     Orbit_DBGout << "dr = " << dr << std::endl;
 
-    m_core->satellite.move(dr - r);
+    m_core->satellite.move(dr);
     Orbit_DBGout << "satellite pos = " << m_core->satellite.position() << std::endl;
 }
 
-std::list<linear_algebra::Vector>& Orbit::render(std::list<linear_algebra::Vector>& positions) {
-    positions.clear();
-    positions.push_back(m_core->earth.position());
-    positions.push_back(m_core->satellite.position());
+std::list<std::shared_ptr<geometry::object>>& Orbit::render(std::list<std::shared_ptr<geometry::object>>& objects) {
+    objects.clear();
+    auto* earth = new
+            geometry::solid::sphere(1, 32, 32);
+    earth->translate(m_core->earth.position()).color(0, 0, 255);
+    auto* satellite = new geometry::solid::sphere(0.01, 32, 32);
+    satellite->translate(m_core->satellite.position() / m_core->earth.R()*2).color(255, 255, 255);
 
-    return positions;
+    objects.push_back(std::shared_ptr<geometry::object>(earth));
+    objects.push_back(std::shared_ptr<geometry::object>(satellite));
+
+    return objects;
 }
 }
 }

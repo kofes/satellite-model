@@ -3,6 +3,7 @@
 #include "LinearAlgebra.h"
 #include "mvp/actions/actions.h"
 #include <list>
+#include <geometric_object/geometric_object.h>
 
 namespace math {
 namespace model {
@@ -15,7 +16,8 @@ public:
 
     Orbit& move_satellite(double dt = 1 /*sec*/);
 
-    std::list<linear_algebra::Vector>& render(std::list<linear_algebra::Vector>& positions);
+    std::list<std::shared_ptr<geometry::object>>& render(std::list<std::shared_ptr<geometry::object>>& objects);
+
 private:
     class core;
 
