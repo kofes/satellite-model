@@ -19,6 +19,8 @@ public:
     triangle& translate(const linear_algebra::Vector& move);
     triangle& rotate(const linear_algebra::Vector& axis, double degree);
 
+    triangle& show_normals(const linear_algebra::Matrix& vp) override;
+
     triangle& render(const linear_algebra::Matrix& vp) override;
 
 private:

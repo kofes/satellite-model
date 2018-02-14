@@ -1,5 +1,6 @@
 #include <mvp/actions/actions.h>
 #include "triangle.h"
+#include "line.h"
 
 namespace geometry {
 class triangle::core {
@@ -50,6 +51,39 @@ triangle& triangle::translate(const linear_algebra::Vector& move) {
 }
 triangle& triangle::rotate(const linear_algebra::Vector& axis, double degree) {
     m_core->rotate = mvp::action::rotate(axis, degree) * m_core->rotate;
+    return *this;
+}
+
+triangle& triangle::show_normals(const linear_algebra::Matrix& vp) {
+    linear_algebra::Matrix model =
+            m_core->rotate.inv() *
+            mvp::action::scale(m_core->scale) *
+            mvp::action::translate(m_core->position).T();
+    for (uint8_t i = 0; i < 3; ++i)
+        geometry::line(linear_algebra::Vector {
+                m_core->position[0],
+                m_core->position[1],
+                m_core->position[2]
+        }, linear_algebra::Vector {
+            model[0][i],
+            model[1][i],
+            model[2][i],
+        })
+                .vertex(attr["vertex"])
+                .model(attr["model"])
+                .mvp(attr["mvp"])
+                .sampler_selector(attr["sampler_selector"])
+                .material_ambient(attr["material_ambient"])
+                .material_diffuse(attr["material_diffuse"])
+                .material_specular(attr["material_specular"])
+                .material_emission(attr["material_emission"])
+                .material_shininess(attr["material_shininess"])
+                .color(
+                        (i == 0)*255,
+                        (i == 1)*255,
+                        (i == 2)*255
+                )
+                .render(vp);
     return *this;
 }
 
@@ -116,5 +150,6 @@ triangle& triangle::render(const linear_algebra::Matrix& vp) {
     glUniform1f(attr["material_shininess"], m_core->shininess);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
+    return *this;
 }
 }
