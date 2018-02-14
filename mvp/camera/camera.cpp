@@ -1,5 +1,6 @@
 #include "camera.h"
 #include <cmath>
+#include <mvp/actions/actions.h>
 
 namespace mvp {
 struct Camera::Core {
@@ -19,7 +20,7 @@ struct Camera::Core {
 
     linear_algebra::Vector m_pos = {0, 0, 0};
     double m_fovy, m_as, m_near, m_far;
-    double m_speed = .1, m_yaw = 0, m_pitch = 180;
+    double m_speed = .1, m_yaw = 270, m_pitch = 180;
 };
 
 Camera::Camera(): m_core(new Core) {};
@@ -31,7 +32,7 @@ Camera::Camera(double fovy, double as, double near, double far):
 linear_algebra::Matrix Camera::model() {
     linear_algebra::Vector up = this->up();
     linear_algebra::Vector target = this->target();
-    linear_algebra::Vector side = this->side();
+    linear_algebra::Vector side = -this->side();
 
     double f = std::cos(m_core->m_fovy / 2) / std::sin(m_core->m_fovy / 2);
     double as = m_core->m_as;
