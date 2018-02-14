@@ -17,13 +17,18 @@ double Earth::mass() const {
     return m_core->M;
 }
 
+double Earth::R() const {
+    return m_core->R;
+}
+
+const linear_algebra::Vector& Earth::position() const {
+    return m_core->position;
+}
+
 linear_algebra::Matrix Earth::model() const {
     double& R = m_core->R;
     return mvp::action::scale({R, R, R}) *
            mvp::action::translate(m_core->position);
-}
-const linear_algebra::Vector& Earth::position() const {
-    return m_core->position;
 }
 }
 }

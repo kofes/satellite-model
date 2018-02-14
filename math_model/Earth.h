@@ -11,9 +11,10 @@ public:
     Earth();
 
     double mass() const;
+    double R() const;
+    const linear_algebra::Vector& position() const;
 
     linear_algebra::Matrix model() const;
-    const linear_algebra::Vector& position() const;
 
 private:
     class core;
