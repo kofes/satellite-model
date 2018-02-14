@@ -5,7 +5,22 @@
 namespace mvp {
 namespace projection {
 linear_algebra::Matrix ortho(
-        const linear_algebra::Matrix &src,
+        double left,
+        double right,
+        double top,
+        double bottom,
+        double near,
+        double far
+);
+
+linear_algebra::Matrix ortho(
+        double width,
+        double height,
+        double near,
+        double far
+);
+
+linear_algebra::Matrix perspective(
         double left,
         double right,
         double top,
@@ -15,11 +30,8 @@ linear_algebra::Matrix ortho(
 );
 
 linear_algebra::Matrix perspective(
-        const linear_algebra::Matrix &src,
-        double left,
-        double right,
-        double top,
-        double bottom,
+        double width,
+        double height,
         double near,
         double far
 );
