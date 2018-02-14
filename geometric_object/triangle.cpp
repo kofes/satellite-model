@@ -65,9 +65,9 @@ triangle& triangle::show_normals(const linear_algebra::Matrix& vp) {
                 m_core->position[1],
                 m_core->position[2]
         }, linear_algebra::Vector {
-            model[0][i],
-            model[1][i],
-            model[2][i],
+                model[0][i] + m_core->position[0],
+                model[1][i] + m_core->position[1],
+                model[2][i] + m_core->position[2],
         })
                 .vertex(attr["vertex"])
                 .model(attr["model"])
