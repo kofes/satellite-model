@@ -17,13 +17,13 @@
 ### Geometric objects `[geometry]`
 #### [x] Base class `[geometric_object]`
 #### [x] grid `[class grid]`
-#### [ ] triangle `[class triangle]`
-#### [ ] square `[class square]`
+#### [x] triangle `[class triangle]`
+#### [x] square `[class square]`
 #### [ ] cube `[class cube]`
-#### [ ] sphere `[class sphere]`
+#### [x] sphere `[class sphere]`
 ### Math models `[math_model::]`
-#### [ ] Earth `[class Earth]`
-#### [ ] Satellite `[class Satellite]`
+#### [~] Earth `[class Earth]`
+#### [~] Satellite `[class Satellite]`
 #### [ ] Orbit `[class Orbit]`
 
 ## Test
