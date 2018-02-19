@@ -237,14 +237,14 @@ static std::shared_ptr<math::model::Orbit> orbit;
 static std::list<std::shared_ptr<geometry::object>> objects;
 
 int init_geometry() {
-    double phi = 0 * M_PI / 180;
-    double theta = 0 * M_PI / 180;
+    double phi = 65 * M_PI / 180;
+    double lambda = 0 * M_PI / 180;
     double r = 6371e+3 + 650e+3;
     double v = 7910;
     orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit(
             linear_algebra::Vector {
-                    std::cos(phi) * std::cos(theta),
-                    std::cos(phi) * std::sin(theta),
+                    std::cos(phi) * std::cos(lambda),
+                    std::cos(phi) * std::sin(lambda),
                     std::sin(phi)
             } * r, linear_algebra::Vector {
                     0,
