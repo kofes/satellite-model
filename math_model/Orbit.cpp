@@ -178,8 +178,8 @@ Orbit& Orbit::move_satellite(double dt) {
     Orbit_DBGout << "M_omega =\n" << M_Omega << std::endl;
 
     linear_algebra::Vector dr =
-//            M_Omega *
-            M_omega *
+            M_Omega *
+            M_omega.inv() *
             linear_algebra::Matrix {
                     {m_core->bitangent[0], m_core->bitangent[1], m_core->bitangent[2], 0},
                     {  m_core->tangent[0],   m_core->tangent[1],   m_core->tangent[2], 0},
