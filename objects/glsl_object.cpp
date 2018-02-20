@@ -19,11 +19,11 @@ object::object():
         {"material_emission", GL_MAX_VERTEX_ATTRIBS},
         {"material_shininess", GL_MAX_VERTEX_ATTRIBS}
     }),
-    m_material_ambient(0,0,0),
-    m_material_diffuse(0,0,0),
-    m_material_specular(0,0,0),
-    m_material_emission(0,0,0),
-    m_material_shininess(1)
+    m_material_ambient(255,255,255),
+    m_material_diffuse(255,255,255),
+    m_material_specular(255,255,255),
+    m_material_emission(255,255,255),
+    m_material_shininess(5)
 {
     glGenVertexArrays(1, &m_vao);
 }
