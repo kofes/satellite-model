@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include "glsl_object.h"
 
 namespace glsl {
@@ -19,7 +18,12 @@ object::object():
         {"material_specular", GL_MAX_VERTEX_ATTRIBS},
         {"material_emission", GL_MAX_VERTEX_ATTRIBS},
         {"material_shininess", GL_MAX_VERTEX_ATTRIBS}
-    })
+    }),
+    m_material_ambient(0,0,0),
+    m_material_diffuse(0,0,0),
+    m_material_specular(0,0,0),
+    m_material_emission(0,0,0),
+    m_material_shininess(1)
 {
     glGenVertexArrays(1, &m_vao);
 }
@@ -108,9 +112,51 @@ object &object::sampler_selector(GLuint index) {
     return *this;
 }
 
-virtual object &object::show_normals(const linear_algebra::Matrix &vp) { return *this; }
+object& object::update_material_ambient(const helper::color& color) {
+    m_material_ambient = color;
+    return *this;
+}
+object& object::update_material_diffuse(const helper::color& color) {
+    m_material_diffuse = color;
+    return *this;
+}
+object& object::update_material_specular(const helper::color& color) {
+    m_material_specular = color;
+    return *this;
+}
+object& object::update_material_emission(const helper::color& color) {
+    m_material_emission = color;
+    return *this;
+}
+object& object::update_material_shininess(double degree) {
+    m_material_shininess = degree;
+    return *this;
+}
 
-virtual object &object::render(const linear_algebra::Matrix &vp) { return *this; }
+object& object::material_ambient(helper::color& color) {
+    color = m_material_ambient;
+    return *this;
+}
+object& object::material_diffuse(helper::color& color) {
+    color = m_material_diffuse;
+    return *this;
+}
+object& object::material_specular(helper::color& color) {
+    color = m_material_specular;
+    return *this;
+}
+object& object::material_emission(helper::color& color) {
+    color = m_material_emission;
+    return *this;
+}
+object& object::material_shininess(double& degree) {
+    degree = m_material_shininess;
+    return *this;
+}
+
+object &object::show_normals(const linear_algebra::Matrix &vp) { return *this; }
+
+object &object::render(const linear_algebra::Matrix &vp) { return *this; }
 
 GLuint object::vao() const {
     return m_vao;
