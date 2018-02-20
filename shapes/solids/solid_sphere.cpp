@@ -79,12 +79,19 @@ sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
             mvp::action::scale(m_scale * m_core->radius * 1.5) *
             mvp::action::translate(m_position).T();
     for (uint8_t i = 0; i < 3; ++i) {
-        shape::line line = shape::line(m_position, linear_algebra::Vector {
+        shape::line line = shape::line({
+                m_position[0],
+                m_position[1],
+                m_position[2]
+        }, linear_algebra::Vector {
                 model[0][i] + m_position[0],
                 model[1][i] + m_position[1],
                 model[2][i] + m_position[2],
         });
-        line.vertex(m_attr["vertex"])
+        line.update_color({(i == 0) * 255,
+                           (i == 1) * 255,
+                           (i == 2) * 255})
+            .vertex(m_attr["vertex"])
             .model(m_attr["model"])
             .mvp(m_attr["mvp"])
             .sampler_selector(m_attr["sampler_selector"])
@@ -92,10 +99,7 @@ sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
             .material_diffuse(m_attr["material_diffuse"])
             .material_specular(m_attr["material_specular"])
             .material_emission(m_attr["material_emission"])
-            .material_shininess(m_attr["material_shininess"])
-            .update_color({(i == 0) * 255,
-                           (i == 1) * 255,
-                           (i == 2) * 255});
+            .material_shininess(m_attr["material_shininess"]);
         line.render(vp);
     }
     return *this;
