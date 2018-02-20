@@ -5,7 +5,7 @@
 #include "GL/glew.h"
 #include "GL/freeglut.h"
 
-#include "args_serializer.h"
+#include "helpers/args_serializer.h"
 
 #include "shader/shader.h"
 #include "shader/shader_program.h"
@@ -44,6 +44,7 @@ void MAIN_DBG_MessageCallback(
 #endif
 
 using namespace std;
+using namespace helper;
 
 void idle_handler();
 void keyboard_handler(unsigned char button, int x, int y);
