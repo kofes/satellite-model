@@ -4,7 +4,7 @@
 namespace math {
 object::object() :
         m_position({0,0,0,1}),
-        m_scale({1,1,1}),
+        m_scale({1,1,1,1}),
         m_orientation(linear_algebra::Matrix::eye(4, 1))
 {}
 
