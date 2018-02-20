@@ -1,6 +1,5 @@
 #pragma once
 
-#include <memory>
 #include "LinearAlgebra.h"
 
 namespace math {
