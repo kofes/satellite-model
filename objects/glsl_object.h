@@ -4,9 +4,10 @@
 #include <inc/Matrix.h>
 #include <map>
 #include <GL/glew.h>
+#include "objects.h"
 
 namespace glsl {
-class object {
+class object: public draw::object {
 public:
     object();
     virtual ~object();
