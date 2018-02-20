@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 # add mat-vec library with headers
 add_subdirectory(mat-vec)
-include_directories(mat-vec/inc)
+include_directories(mat-vec)
 
 # add mvp
 file(GLOB MVP_SRC_FILES
@@ -29,11 +29,6 @@ endif()
 # add shader helpers
 file(GLOB SHADER_SRC_FILES shader/*.h shader/*.cpp)
 
-# add geometric objects
-file(GLOB GEOMETRIC_OBJ_SRC_FILES
-        geometric_object/*.h geometric_object/*.cpp
-        geometric_object/*/*.h geometric_object/*/*.cpp)
-
 # add SOIL
 add_subdirectory(soil)
 include_directories(soil/inc)
@@ -41,11 +36,19 @@ include_directories(soil/inc)
 # add texture helper
 set(TEXTURE_SRC_FILES texture/texture.h texture/texture.cpp)
 
+# add object helpers
+file(GLOB OBJECTS_SRC_FILES objects/*.h objects/*.cpp)
+
+# add geometric objects
+file(GLOB GEOMETRIC_OBJ_SRC_FILES
+        geometric_object/*.h geometric_object/*.cpp
+        geometric_object/*/*.h geometric_object/*/*.cpp)
+
 # add math models
 file(GLOB MATH_MODELS_SRC_FILES math_model/*.h math_model/*.cpp)
 
 # set helpers
-set(HELPERS args_serializer.h)
+file(GLOB HELPERS_SRC_FILES helpers/*.cpp helpers/*.h)
 
 # include root
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -54,10 +57,13 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(Satellite
         ${MVP_SRC_FILES}
         ${SHADER_SRC_FILES}
-        ${GEOMETRIC_OBJ_SRC_FILES}
         ${TEXTURE_SRC_FILES}
+
+        ${OBJECTS_SRC_FILES}
+
+        ${GEOMETRIC_OBJ_SRC_FILES}
         ${MATH_MODELS_SRC_FILES}
-        ${HELPERS}
+        ${HELPERS_SRC_FILES}
         main.cpp)
 
 target_link_libraries(Satellite
