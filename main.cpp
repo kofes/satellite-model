@@ -1,16 +1,16 @@
 #include <iostream>
 #include <sstream>
-#include <math_model/Orbit.h>
-#include <geometric_object/solids/solids.h>
+
 #include "GL/glew.h"
 #include "GL/freeglut.h"
-
-#include "helpers/args_serializer.h"
-
+#include "LinearAlgebra.h"
+#include "helpers/helpers.h"
 #include "shader/shader.h"
 #include "shader/shader_program.h"
 
-#include "LinearAlgebra.h"
+#include <math_model/Orbit.h>
+
+#include <geometric_object/solids/solids.h>
 
 #include "geometric_object/grid.h"
 
