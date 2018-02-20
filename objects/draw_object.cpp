@@ -1,5 +1,5 @@
-#include <mvp/actions/actions.h>
 #include "draw_object.h"
+#include "mvp/actions/actions.h"
 
 namespace draw {
 object::object(): m_color(0,0,0) {};
