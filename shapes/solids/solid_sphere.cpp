@@ -4,24 +4,11 @@
 
 namespace shape {
 namespace solid {
-class sphere::core {
-public:
-    core() = default;
 
-    std::vector<float> vertices;
-    std::vector<float> normals;
-    std::vector<float> texture;
-    std::vector<GLuint> indices;
-
-    float radius;
-};
-
-sphere::sphere(size_t slices, size_t stacks, float radius): m_core(new sphere::core) {
-    m_core->radius = radius;
-
-    std::vector<float>& vertices = m_core->vertices;
-    std::vector<float>& normals = m_core->normals;
-    std::vector<float>& texture = m_core->texture;
+sphere::sphere(size_t slices, size_t stacks, float radius): m_radius(radius) {
+    std::vector<float>& vertices = m_vertices;
+    std::vector<float>& normals = m_normals;
+    std::vector<float>& texture = m_texture;
 
     for(size_t i = 0; i <= stacks; ++i) {
         float V = i / (float)stacks;
@@ -47,7 +34,7 @@ sphere::sphere(size_t slices, size_t stacks, float radius): m_core(new sphere::c
         }
     }
 
-    std::vector<GLuint>& indices = m_core->indices;
+    std::vector<GLuint>& indices = m_indices;
 
     for (size_t i = 0; i < slices * (stacks+1); ++i) {
         indices.push_back(i);
@@ -76,21 +63,22 @@ sphere& sphere::update_color(const helper::color& color) {
 sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
     linear_algebra::Matrix model =
             m_orientation.inv() *
-            mvp::action::scale(m_scale * m_core->radius * 1.5) *
+            mvp::action::scale(m_scale * m_radius * 1.5) *
             mvp::action::translate(m_position).T();
     for (uint8_t i = 0; i < 3; ++i) {
         shape::line line = shape::line({
-                m_position[0],
-                m_position[1],
-                m_position[2]
+                m_position[0]/2,
+                m_position[1]/2,
+                m_position[2]/2
         }, linear_algebra::Vector {
-                model[0][i] + m_position[0],
-                model[1][i] + m_position[1],
-                model[2][i] + m_position[2],
+                model[0][i] + m_position[0]/2,
+                model[1][i] + m_position[1]/2,
+                model[2][i] + m_position[2]/2,
         });
-        line.update_color({(i == 0) * 255,
-                           (i == 1) * 255,
-                           (i == 2) * 255})
+        line.update_color(helper::color(
+                (i == 0) * 255,
+                (i == 1) * 255,
+                (i == 2) * 255))
             .vertex(m_attr["vertex"])
             .model(m_attr["model"])
             .mvp(m_attr["mvp"])
@@ -106,13 +94,13 @@ sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
 }
 
 sphere &sphere::render(const linear_algebra::Matrix &vp) {
-    const std::vector<float> &vertices = m_core->vertices;
-    const std::vector<float> &normals = m_core->normals;
-    const std::vector<float> &texture = m_core->texture;
+    const std::vector<float> &vertices = m_vertices;
+    const std::vector<float> &normals = m_normals;
+    const std::vector<float> &texture = m_texture;
 
-    const float &radius = m_core->radius;
+    const float &radius = m_radius;
 
-    const std::vector<GLuint>& indices = m_core->indices;
+    const std::vector<GLuint>& indices = m_indices;
 
     glBindVertexArray(m_vao);
 

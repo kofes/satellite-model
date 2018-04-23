@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <memory>
 #include <objects/objects.h>
 #include "LinearAlgebra.h"
 
@@ -18,9 +17,12 @@ public:
     sphere& render(const linear_algebra::Matrix& vp) override;
 
 private:
-    class core;
+    std::vector<float> m_vertices;
+    std::vector<float> m_normals;
+    std::vector<float> m_texture;
+    std::vector<GLuint> m_indices;
 
-    std::shared_ptr<core> m_core;
+    float m_radius;
 };
 }
 }

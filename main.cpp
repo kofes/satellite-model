@@ -7,14 +7,14 @@
 #include "helpers/helpers.h"
 #include "shader/shader.h"
 #include "shader/shader_program.h"
-
 #include <math_model/Orbit.h>
-
 #include <geometric_object/solids/solids.h>
-
+#include <math_model/Earth.h>
+#include <math_model/Satellite.h>
 #include "geometric_object/grid.h"
-
 #include "mvp/camera/camera.h"
+
+#include "shapes/shapes.h"
 
 #define MAIN_LOG
 #define MAIN_DBG
@@ -235,24 +235,22 @@ void mouse_motion_handler(int x, int y) {
 }
 
 static std::shared_ptr<math::model::Orbit> orbit;
-static std::list<std::shared_ptr<geometry::object>> objects;
+static std::list<std::shared_ptr<glsl::object>> objects;
 
 int init_geometry() {
-    double phi = 65 * M_PI / 180;
+    double phi = 90 * M_PI / 180;
     double lambda = 0 * M_PI / 180;
     double r = 6371e+3 + 650e+3;
     double v = 7910;
-    orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit(
-            linear_algebra::Vector {
-                    std::cos(phi) * std::cos(lambda),
-                    std::cos(phi) * std::sin(lambda),
-                    std::sin(phi)
-            } * r, linear_algebra::Vector {
-                    0,
-                    1,
-                    0
-            } * v
-    ));
+    orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit);
+    orbit->setCentralMass(reinterpret_cast<phys::object*>(new math::model::Earth));
+    orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite),
+                         linear_algebra::Vector {
+                                 std::cos(phi) * std::cos(lambda),
+                                 std::cos(phi) * std::sin(lambda),
+                                 std::sin(phi)
+                         } * r,
+                         linear_algebra::Vector {0, 1, 0} * v);
     return 0;
 }
 
@@ -277,8 +275,7 @@ void idle_handler() {
                      camera.position()[0],
                      camera.position()[1],
                      camera.position()[2]);
-    orbit->move_satellite(satellite_speed);
-    orbit->render(objects);
+    orbit->update(satellite_speed);
     glutPostRedisplay();
 }
 
@@ -287,6 +284,23 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // VP matrix
     linear_algebra::Matrix vp = camera.model();
+
+//    shape::solid::sphere sphere(32, 32, 1);
+//    sphere.vertex(shmap["obj_position"])
+//            .normal(shmap["obj_normal"])
+//            .model(shmap["model"])
+//            .mvp(shmap["mvp"])
+//            .sampler_selector(shmap["select_samplers"])
+//            .material_ambient(shmap["material_ambient"])
+//            .material_diffuse(shmap["material_diffuse"])
+//            .material_specular(shmap["material_specular"])
+//            .material_emission(shmap["material_emission"])
+//            .material_shininess(shmap["material_shininess"]);
+//    sphere.update_color(helper::color(50, 50, 50));
+//    sphere.show_normals(vp).render(vp);
+
+//    std::list<std::shared_ptr<glsl::object>> objests;
+    orbit->render(objects);
 
     for (auto& object: objects)
         object->

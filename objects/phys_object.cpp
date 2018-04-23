@@ -26,17 +26,14 @@ object& object::update(double dt) {
     return  *this;
 }
 
-object& object::dw(linear_algebra::Vector& res) {
-    res = m_dw;
-    return *this;
+linear_algebra::Vector object::dw() const {
+    return m_dw;
 }
-object& object::dv(linear_algebra::Vector& res) {
-    res = m_dv;
-    return *this;
+linear_algebra::Vector object::dv() const {
+    return m_dv;
 }
 
-object& object::mass(double& mass) {
-    mass = m_mass;
-    return *this;
+double object::mass() const {
+    return m_mass;
 }
 }

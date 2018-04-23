@@ -3,20 +3,13 @@
 #include "shape_line.h"
 
 namespace shape {
-class line::core {
-public:
-    core() = default;
-
-    float vertices[3 * 2];
-};
-
-line::line(
+    line::line(
         const linear_algebra::Vector& A,
         const linear_algebra::Vector& B
-) : m_core(new line::core) {
+) {
     for (size_t i = 0; i < 3; ++i) {
-        m_core->vertices[i + 0] = A[i];
-        m_core->vertices[i + 3] = B[i];
+        m_vertices[i + 0] = A[i];
+        m_vertices[i + 3] = B[i];
         m_position[i] = A[i];
     }
 
@@ -30,8 +23,10 @@ line& line::update_color(const helper::color &color) {
     glsl::object::update_color(color);
     float buff[3];
     std::tie(buff[0], buff[1], buff[2]) = color.f();
-    for (uint8_t i = 0; i < 3; ++i)
+    for (uint8_t i = 0; i < 3; ++i) {
+        m_material_emission[i] *= buff[i];
         m_material_ambient[i] *= buff[i];
+    }
     return *this;
 }
 
@@ -42,7 +37,7 @@ line& line::render(const linear_algebra::Matrix& vp) {
     glGenBuffers(1, &m_vbo["vertex"]);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo["vertex"]);
-    glBufferData(GL_ARRAY_BUFFER, (3 * 2) * sizeof(float), m_core->vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (3 * 2) * sizeof(float), m_vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(m_attr["vertex"], 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(m_attr["vertex"]);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -68,6 +63,9 @@ line& line::render(const linear_algebra::Matrix& vp) {
     float red, green, blue;
     std::tie(red, green, blue) = m_material_ambient.f();
     glUniform3f(m_attr["material_ambient"], red, green, blue);
+    std::tie(red, green, blue) = m_material_emission.f();
+    glUniform3f(m_attr["material_emission"], red, green, blue);
+    glUniform1f(m_attr["material_shininess"], m_material_shininess);
 
     glDrawArrays(GL_LINES, 0, 2);
     glBindVertexArray(0);

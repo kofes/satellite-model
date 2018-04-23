@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <memory>
 #include <objects/objects.h>
 
 #include "LinearAlgebra.h"
@@ -19,8 +18,7 @@ public:
     line& render(const linear_algebra::Matrix& vp) override;
 
 private:
-    class core;
+    float m_vertices[3 * 2];
 
-    std::shared_ptr<core> m_core;
 };
 }

@@ -9,7 +9,7 @@ namespace glsl {
 class object: public draw::object {
 public:
     object();
-    virtual ~object();
+    ~object() override;
 
     object& vertex(GLuint index);
     object& model(GLuint index);
