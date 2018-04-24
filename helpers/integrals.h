@@ -3,7 +3,8 @@
 #include <cstdlib>
 
 namespace integral {
-    typedef double (*dfdt)(double dt);
+//    typedef double (*dfdt)(double dt);
+    typedef std::function<double(double)> dfdt;
 
     inline double rect(dfdt f, double from, double to, size_t N) {
         double sum = 0;

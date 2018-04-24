@@ -22,8 +22,8 @@ namespace Kepler {
 
     inline double dedt(const Parameters& params, const linear_algebra::Vector &f) {
         return std::sqrt(params.p / params.mu) *
-               (f[0] * std::sin(params.nu) + f[1] * ((1 + params.r / params.p)
-                                                     * std::cos(params.nu) + params.e * params.r / params.p));
+               (f[0] * std::sin(params.nu) + f[1] * ((1 + params.r / params.p) * std::cos(params.nu)
+                                                     + params.e * params.r / params.p));
     }
 
     inline double domegadt(const Parameters& params, const linear_algebra::Vector &f) {
@@ -45,11 +45,10 @@ namespace Kepler {
     typedef double (*Integral)(integral::dfdt fun, double from, double to, size_t count);
 
     inline double dtaudt(const Parameters& params, const linear_algebra::Vector &f, Integral integ = integral::rect) {
-        auto& Int = integ;
         auto fun = [&](double dnu) -> double {
             return 2 * std::cos(dnu) / std::pow(1 + params.e / std::cos(dnu), 3);
         };
-        double N = params.p * params.p / params.r / params.r * Int(fun, 0, params.nu, 1000);
+        double N = params.p * params.p / params.r / params.r * integ(fun, 0, params.nu, 1000);
         return params.r * params.r / (params.e * params.mu) * (
                 (params.e * N * std::sin(params.nu) - std::cos(params.nu)) * f[0] +
                 N * params.p / params.r * f[1]
