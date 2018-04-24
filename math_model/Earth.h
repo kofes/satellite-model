@@ -20,7 +20,6 @@ private:
     double m_R = 6371e+3; //m
     double m_pR = 6356.8e+3; //m
     double m_eR = 6378.1e+3; //m
-//    shape::solid::sphere shape_model = shape::solid::sphere(32, 32, 1);
 };
 }
 }

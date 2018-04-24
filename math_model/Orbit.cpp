@@ -8,16 +8,26 @@
 
 namespace math {
 namespace model {
-Orbit::Orbit() = default;
+Orbit::Orbit(): phys::object(0) {};
 
 Orbit & Orbit::setCentralMass(phys::object* centralMass) {
+    if (m_centralMass != nullptr)
+        m_mass -= m_centralMass->mass();
     m_centralMass = std::shared_ptr<phys::object>(centralMass);
+    if (m_centralMass != nullptr)
+        m_mass += m_centralMass->mass();
 }
 
 Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
                             const linear_algebra::Vector& satellite_start_point,
                             const linear_algebra::Vector& satellite_start_speed) {
+    if (physObject == nullptr)
+        return *this;
+
+    if (m_physObjects[name].first != nullptr)
+        m_mass -= m_physObjects[name].first->mass();
     m_physObjects[name].first = std::shared_ptr<phys::object>(physObject);
+    m_mass += m_physObjects[name].first->mass();
 
     // initialize start point
     m_physObjects[name].first->move(satellite_start_point);
@@ -54,12 +64,12 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
     Orbit_DBGout << "norm = " << parameters.norm << std::endl;
 
     // initialize e_r
-    parameters.bitangent = satellite_start_point.normalize();
-    Orbit_DBGout << "e_r = " << parameters.bitangent << std::endl;
+    parameters.e_r = satellite_start_point.normalize();
+    Orbit_DBGout << "e_r = " << parameters.e_r << std::endl;
 
     // initialize e_t
-    parameters.tangent = (start_speed > circle_speed ? 1 : -1) * satellite_start_speed.normalize();
-    Orbit_DBGout << "e_t = " << parameters.tangent << std::endl;
+    parameters.e_tau = (start_speed > circle_speed ? 1 : -1) * satellite_start_speed.normalize();
+    Orbit_DBGout << "e_t = " << parameters.e_tau << std::endl;
 
     // initialize i
     parameters.i = std::acos(parameters.norm * linear_algebra::Vector {0, 0, 1});
@@ -95,14 +105,32 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
 
     m_physObjects[name].first->orientation(
             linear_algebra::Matrix {
-                    {     parameters.norm[0],      parameters.norm[1],      parameters.norm[2], 0},
-                    {  parameters.tangent[0],   parameters.tangent[1],   parameters.tangent[2], 0},
-                    {parameters.bitangent[0], parameters.bitangent[1], parameters.bitangent[2], 0},
-                    {                     0 ,                      0 ,                      0 , 1}
+                    {  parameters.e_r[0],   parameters.e_r[1],   parameters.e_r[2], 0},
+                    {parameters.e_tau[0], parameters.e_tau[1], parameters.e_tau[2], 0},
+                    { parameters.norm[0],  parameters.norm[1],  parameters.norm[2], 0},
+                    {                 0 ,                  0 ,                  0 , 1}
             });
 }
 
+Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
+                            const OrbitParameters& params) {
+    if (physObject == nullptr)
+        return *this;
+
+    if (m_physObjects[name].first != nullptr)
+        m_mass -= m_physObjects[name].first->mass();
+    m_physObjects[name].first = std::shared_ptr<phys::object>(physObject);
+    m_mass += m_physObjects[name].first->mass();
+
+    OrbitParameters& parameters = m_physObjects[name].second;
+    //initialize mu
+    parameters.mu = m_G * (m_centralMass->mass() + physObject->mass());
+    Orbit_DBGout << "mu = " << m_physObjects[name].second.mu << std::endl;
+}
+
 Orbit& Orbit::removePhysObject(std::string& name) {
+    if (m_physObjects[name].first != nullptr)
+        m_mass -= m_physObjects[name].first->mass();
     m_physObjects.erase(name);
 }
 
@@ -134,10 +162,10 @@ Orbit& Orbit::update(double dt /*sec*/) {
 
         linear_algebra::Vector dr =
                 linear_algebra::Matrix {
-                        {obj.second.bitangent[0], obj.second.bitangent[1], obj.second.bitangent[2], 0},
-                        {  obj.second.tangent[0],   obj.second.tangent[1],   obj.second.tangent[2], 0},
-                        {     obj.second.norm[0],      obj.second.norm[1],      obj.second.norm[2], 0},
-                        {                     0 ,                      0 ,                      0 , 1}
+                        {  obj.second.e_r[0],   obj.second.e_r[1],   obj.second.e_r[2], 0},
+                        { obj.second.norm[0],  obj.second.norm[1],  obj.second.norm[2], 0},
+                        {obj.second.e_tau[0], obj.second.e_tau[1], obj.second.e_tau[2], 0},
+                        {                 0 ,                  0 ,                  0 , 1}
                 }.T() * linear_algebra::Vector {
                         sclr_r *c_nu,
                         sclr_r *s_nu, 0, 1} - r;
@@ -178,15 +206,15 @@ Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
 
     for (auto& pr : m_physObjects) {
         auto& obj = pr.second.first;
-        auto* draw_obj = new shape::solid::sphere(32, 32, 1);
+        auto* draw_obj = new shape::solid::sphere(32, 32, 0.1);
         draw_obj->move(linear_algebra::Vector {
                     obj->position()[0], // x
                     obj->position()[2], // z
                     obj->position()[1]  // y
             } / EARTH_R * 2)
-            .scale(linear_algebra::Vector {
-                0.5, 0.5, 0.5
-            })
+//            .scale(linear_algebra::Vector {
+//                0.5, 0.5, 0.5
+//            })
             .orientation(obj->orientation());; // Earth's radius
         draw_obj->update_color(helper::color(100, 100, 100));
         draw_list.push_back(std::shared_ptr<glsl::object>(draw_obj));

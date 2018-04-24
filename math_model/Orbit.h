@@ -20,8 +20,21 @@
 
 namespace math {
 namespace model {
-class Orbit: public math::object {
+class Orbit: public phys::object {
 public:
+
+    struct OrbitParameters {
+        double mu = 0;
+        double p = 0; // m
+        double e = 0;
+        double T = 0, time = 0, t = 0; // sec
+        double nu = 0; // rad
+        double i = 0; // rad
+        linear_algebra::Vector norm, e_tau, e_r;
+        double Omega = 0;
+        double omega = 0;
+    };
+
     Orbit();
 
     Orbit& setCentralMass(phys::object* centralMass);
@@ -30,9 +43,12 @@ public:
                          const linear_algebra::Vector& satellite_start_point,
                          const linear_algebra::Vector& satellite_start_speed);
 
+    Orbit& addPhysObject(const std::string& name, phys::object* physObject,
+                         const OrbitParameters& params);
+
     Orbit& removePhysObject(std::string& name);
 
-    Orbit& update(double dt = 1 /*sec*/);
+    Orbit& update(double dt = 1 /*sec*/) override;
 
     Orbit& render(std::list<std::shared_ptr<glsl::object>>& draw_list);
 
@@ -63,18 +79,6 @@ private:
     }
 
     double m_G = 6.67408e-11; // m^3 / (kg * sec^2)
-
-    struct OrbitParameters {
-        double mu = 0;
-        double p = 0; // m
-        double e = 0;
-        double T = 0, time = 0, t = 0; // sec
-        double nu = 0; // rad
-        double i = 0; // rad
-        linear_algebra::Vector norm, tangent, bitangent;
-        double Omega = 0;
-        double omega = 0;
-    };
 
     std::shared_ptr<phys::object> m_centralMass;
     std::map<std::string, std::pair<std::shared_ptr<phys::object>, OrbitParameters>> m_physObjects;
