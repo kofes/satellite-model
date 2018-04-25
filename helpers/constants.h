@@ -15,7 +15,7 @@ namespace helper {
         static const double J2 = 1082.2e-6;
 
         // Aerodynamic's constants
-        static const double C_d = 1 / 2.2;
+        static const double C_d = 2.2;
         static const double EARTH_OMEGA = 7.29e-5; // rad/sec
 
         // Solar pressure
