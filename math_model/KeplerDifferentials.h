@@ -42,9 +42,9 @@ namespace Kepler {
         return params.r / std::sqrt(params.mu * params.p) * std::sin(params.u) / std::sin(params.i) * f[2];
     }
 
-    typedef double (*Integral)(integral::dfdt fun, double from, double to, size_t count);
+    typedef double (*Integral)(helper::integral::dfdt fun, double from, double to, size_t count);
 
-    inline double dtaudt(const Parameters& params, const linear_algebra::Vector &f, Integral integ = integral::rect) {
+    inline double dtaudt(const Parameters& params, const linear_algebra::Vector &f, Integral integ = helper::integral::rect) {
         auto fun = [&](double dnu) -> double {
             return 2 * std::cos(dnu) / std::pow(1 + params.e / std::cos(dnu), 3);
         };
