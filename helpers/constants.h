@@ -20,5 +20,7 @@ namespace helper {
 
         // Solar pressure
         static const double SOLAR_PRESSURE = 4.6e-6;
+        static const double ATMOSPHERIC_PRESSURE_0 = 101325; // Па
+        static const double TEMPERATURE_0 = 288.15; // K
     }
 }
