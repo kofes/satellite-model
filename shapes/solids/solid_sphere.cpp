@@ -62,7 +62,7 @@ sphere& sphere::update_color(const helper::color& color) {
 
 sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
     linear_algebra::Matrix model =
-            m_orientation.inv() *
+            m_orientation *
             mvp::action::scale(m_scale * m_radius * 1.5) *
             mvp::action::translate(m_position).T();
     for (uint8_t i = 0; i < 3; ++i) {
@@ -76,9 +76,10 @@ sphere& sphere::show_normals(const linear_algebra::Matrix& vp) {
                 model[2][i] + m_position[2]/2,
         });
         line.update_color(helper::color(
-                (i == 0) * 255,
-                (i == 1) * 255,
-                (i == 2) * 255))
+                (i == 0) * 255, // x - red
+                (i == 1) * 255, // y - green
+                (i == 2) * 255  // z - blue
+                ))
             .vertex(m_attr["vertex"])
             .model(m_attr["model"])
             .mvp(m_attr["mvp"])
@@ -146,7 +147,7 @@ sphere &sphere::render(const linear_algebra::Matrix &vp) {
 
  	linear_algebra::Matrix model =
             m_orientation *
-            mvp::action::scale(m_scale) *
+            mvp::action::scale(m_scale * m_radius) *
             mvp::action::translate(m_position).T();
 
     linear_algebra::Matrix mvp = model * vp;
