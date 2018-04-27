@@ -228,8 +228,8 @@ void mouse_handler(int button, int state, int x, int y) {
 void mouse_motion_handler(int x, int y) {
     if (mouse_button == GLUT_LEFT_BUTTON)
         camera
-            .yaw((x - mouse_pos[0]) * 0.1f)
-            .pitch((y - mouse_pos[1]) * 0.1f);
+            .pitch(-(x - mouse_pos[0]) * 0.1f)
+            .yaw(-(y - mouse_pos[1]) * 0.1f);
     mouse_pos[0] = x;
     mouse_pos[1] = y;
 }
@@ -238,10 +238,10 @@ static std::shared_ptr<math::model::Orbit> v_orbit;
 static std::list<std::shared_ptr<glsl::object>> objects;
 
 int init_geometry() {
-    double phi = 90 * M_PI / 180;
-    double lambda = 0 * M_PI / 180;
-    double r = 6371e+3 + 1650e+3;
-    double v = 7910;
+//    double phi = 90 * M_PI / 180;
+//    double lambda = 0 * M_PI / 180;
+//    double r = 6371e+3 + 1650e+3;
+//    double v = 7910;
     v_orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit);
     v_orbit->setCentralMass(reinterpret_cast<phys::object*>(new math::model::Earth));
 //    v_orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite),
@@ -253,25 +253,25 @@ int init_geometry() {
 //                         linear_algebra::Vector {-1, 0, 0} * v);
     math::model::Orbit::OrbitParameters params;
     params.Omega = 0;
-    params.i = 0;
-    params.p = 6371e+3 + 1650e+3;
-    params.e = 0.01;
-    params.omega = 45;
+    params.i = 65;
+    params.p = 6371e+3 + 650e+3;
+    params.e = 0.3;
+    params.omega = 40;
     v_orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite), params);
     return 0;
 }
 
-double satellite_speed = 10;
+double satellite_speed = 0;
 
 void idle_handler() {
     for (const auto& pr: keymap)
         if (pr.second) switch (pr.first) {
                 case 'w': camera.move(-camera.target() * camera.speed()); break;
                 case 's': camera.move( camera.target() * camera.speed()); break;
-                case 'd': camera.move( camera.side() * camera.speed()); break;
-                case 'a': camera.move(-camera.side() * camera.speed()); break;
-                case ' ': camera.move(-camera.up() * camera.speed()); break;
-                case 'c': camera.move( camera.up() * camera.speed()); break;
+                case ' ': camera.move( linear_algebra::Vector {0, 0, 1} * camera.speed()); break;
+                case 'c': camera.move(-linear_algebra::Vector {0, 0, 1} * camera.speed()); break;
+                case 'd': camera.move(-camera.up() * camera.speed()); break;
+                case 'a': camera.move( camera.up() * camera.speed()); break;
                 case '-': camera.zoom(-0.1); break;
                 case '+': camera.zoom( 0.1); break;
                 case 'h': satellite_speed += 10; break;
