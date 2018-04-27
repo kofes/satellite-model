@@ -52,18 +52,7 @@ namespace force {
               );
     }
 
-    static const double AtmPress0 = 101325; // Па
-    static const double T0 = 288.15; // K
-    static const double GravStat = 6.67408e-11; //м^3 кг^-1 с^-2
-
     double atm_density(double h, double L = -0.0065) {
-//        double g = GravStat * helper::constant::EARTH_MASS / std::pow(h + helper::constant::EARTH_R, 2);
-        double H = 8.5e+3;
-//        double T = T0 + L * h/(helper::constant::EARTH_R);
-//        double Molar_Mass = 0.0289644; // кг / моль
-//        double UnivGasStat_R = 8.31447; // Дж / моль * K
-        double p = AtmPress0 * std::exp(-h / H);
-
-        return p;
+        return 4.8e-7;
     }
 };
