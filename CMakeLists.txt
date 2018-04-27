@@ -3,6 +3,9 @@ project(Satellite)
 
 set(CMAKE_CXX_STANDARD 11)
 
+SET(CMAKE_C_FLAGS_DEBUG "-D_DEBUG")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+
 # add mat-vec library with headers
 add_subdirectory(mat-vec)
 include_directories(mat-vec)
@@ -42,11 +45,6 @@ file(GLOB HELPERS_SRC_FILES helpers/*.cpp helpers/*.h)
 # add object helpers
 file(GLOB OBJECTS_SRC_FILES objects/*.h objects/*.cpp)
 
-# add geometric objects
-file(GLOB GEOMETRIC_OBJ_SRC_FILES
-        geometric_object/*.h geometric_object/*.cpp
-        geometric_object/*/*.h geometric_object/*/*.cpp)
-
 # add shapes objects
 file(GLOB SHAPES_SRC_FILES
         shapes/*.h shapes/*.cpp
@@ -69,9 +67,9 @@ add_executable(Satellite
         ${OBJECTS_SRC_FILES}
         ${SHAPES_SRC_FILES}
 
-        ${GEOMETRIC_OBJ_SRC_FILES}
         ${MATH_MODELS_SRC_FILES}
-        main.cpp)
+        main.cpp
+        )
 
 target_link_libraries(Satellite
         ${OPENGL_LIBRARIES}
