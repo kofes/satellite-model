@@ -141,8 +141,6 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
 
     std::tie(sclr_r, parameters.nu) = helper::orbit::ellipticPolarCoordinates(parameters.t - parameters.time, parameters.p, parameters.e, parameters.mu);
     Orbit_DBGout << "\t|r(0)| = " << sclr_r << std::endl;
-
-    parameters.nu *= 180 / M_PI;
     Orbit_DBGout << "\tnu(0) = " << parameters.nu << std::endl;
 
     linear_algebra::Vector r = sclr_r * linear_algebra::Vector {std::cos(parameters.nu), std::sin(parameters.nu), 0, 1};
@@ -151,6 +149,8 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
         mvp::action::rotate({0, 0, 1}, parameters.Omega) *
         r;
     Orbit_DBGout << "\tr = " << r << std::endl;
+
+    parameters.nu *= 180 / M_PI;
 
     m_physObjects[name].first->move(r);
     m_physObjects[name].first->rotate({0, 0, 1}, parameters.nu);
@@ -218,20 +218,22 @@ Orbit& Orbit::update(double dt /*sec*/) {
     }
 }
 
-void Orbit::updateParameters(OrbitParameters& params, double mass, double nu, double& r, double dt) {
+void Orbit::updateParameters(OrbitParameters& params, double mass, double& r, double dt) {
     Kepler::Parameters keplerParameters;
-    keplerParameters.omega = params.omega;
-    keplerParameters.Omega = params.Omega;
+    keplerParameters.omega = params.omega * M_PI / 180;
+    keplerParameters.Omega = params.Omega * M_PI / 180;
     keplerParameters.e = params.e;
-    keplerParameters.i = params.i;
+    keplerParameters.i = params.i * M_PI / 180;
     keplerParameters.mu = params.mu;
     keplerParameters.p = params.p;
     keplerParameters.nu = params.nu;
-    keplerParameters.u = params.nu + params.omega;
+    keplerParameters.u = params.nu + params.omega * M_PI / 180;
     keplerParameters.r = r;
     double start_time = params.time;
 
-    size_t N = 100;
+    double dh = 0.1;
+    size_t N = std::ceil(dt / dh);
+
     double sail_area = 400;
     linear_algebra::Vector sail_norm {1, 0, 0};
     linear_algebra::Vector solar_norm {-1, 0, 0};
@@ -245,70 +247,59 @@ void Orbit::updateParameters(OrbitParameters& params, double mass, double nu, do
     sailParameters.eb = 1.9;
 
     for (size_t i = 1; i <= N; ++i) {
-        linear_algebra::Vector force1 = force::gravJ2(keplerParameters, mass);
-        linear_algebra::Vector force2 = force::atmos(keplerParameters,
-                                                     force::atm_density(r - helper::constant::EARTH_R),
-                                                     sail_area,
-                                                     sail_norm
-        );
-        linear_algebra::Vector force3 = force::solar(sailParameters, sail_area, solar_norm, sail_norm);
-
-        linear_algebra::Vector f = force1 + force3;
+        linear_algebra::Vector f =
+                force::gravJ2(keplerParameters, mass)
+//                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sail_area, sail_norm)
+//                + force::solar(sailParameters, sail_area, solar_norm, sail_norm)
+        ;
+        Orbit_DBGout << "force: " << f << std::endl;
 //        std::cout << "gravity force: " << force1 << std::endl;
 //        std::cout << "atmosphere force: " << force2 << std::endl;
 //        std::cout << "solar force: " << force3 << std::endl;
 
-        double dh = dt / N;
 
-        double E = helper::orbit::anomaly(params.t - start_time - dt + dh * i, keplerParameters.p, keplerParameters.e, keplerParameters.mu);
+        std::tie(r, keplerParameters.nu) = helper::orbit::ellipticPolarCoordinates(
+                params.t - params.time - dt + dh * i,
+                keplerParameters.p, keplerParameters.e, params.mu);
 
-        double a = keplerParameters.p / (1 - keplerParameters.e * keplerParameters.e);
-        double tmp_E = 1 - keplerParameters.e * std::cos(E);
-
-        r = a * tmp_E;
-
-        double c_nu = (std::cos(E) - keplerParameters.e)/tmp_E;
-
-        double s_nu = std::sin(E)/tmp_E * std::sqrt(1 - keplerParameters.e * keplerParameters.e);
-
-        keplerParameters.nu = std::atan2(s_nu, c_nu);
-
-        keplerParameters.omega += Kepler::domegadt(keplerParameters, f) * dh / M_PI * 180;
-        keplerParameters.Omega += Kepler::dOmegadt(keplerParameters, f) * dh / M_PI * 180;
+        keplerParameters.omega += Kepler::domegadt(keplerParameters, f) * dh;
+        keplerParameters.Omega += Kepler::dOmegadt(keplerParameters, f) * dh;
         keplerParameters.p += Kepler::dpdt(keplerParameters, f) * dh;
         keplerParameters.e += Kepler::dedt(keplerParameters, f) * dh;
         keplerParameters.i += Kepler::didt(keplerParameters, f) * dh;
+        start_time += Kepler::dtaudt(keplerParameters, f) * dh;
 
-        keplerParameters.u = params.nu + params.omega;
+        keplerParameters.u = (keplerParameters.nu + keplerParameters.omega);
 
         start_time += Kepler::dtaudt(keplerParameters, f) * dh;
-        Orbit_DBGout << "omega: " << keplerParameters.omega << std::endl;
-        Orbit_DBGout << "Omega: " << keplerParameters.Omega << std::endl;
-        Orbit_DBGout << "p: " << keplerParameters.p << std::endl;
-        Orbit_DBGout << "e: " << keplerParameters.e << std::endl;
-        Orbit_DBGout << "a: " << keplerParameters.p / (1 - keplerParameters.e * keplerParameters.e) << std::endl;
-        Orbit_DBGout << "i: " << keplerParameters.i << std::endl;
     }
+    Orbit_DBGout << "omega: " << keplerParameters.omega << std::endl;
+    Orbit_DBGout << "Omega: " << keplerParameters.Omega << std::endl;
+    Orbit_DBGout << "p: " << keplerParameters.p << std::endl;
+    Orbit_DBGout << "e: " << keplerParameters.e << std::endl;
+    Orbit_DBGout << "a: " << keplerParameters.p / (1 - keplerParameters.e * keplerParameters.e) << std::endl;
+    Orbit_DBGout << "i: " << keplerParameters.i << std::endl;
+    Orbit_DBGout << "nu: " << keplerParameters.nu << std::endl;
+    Orbit_DBGout << "time: " << start_time << std::endl;
 
 
-//    params.omega = keplerParameters.omega;
-//    params.Omega = keplerParameters.Omega;
+//    params.omega = keplerParameters.omega / M_PI * 180;
+//    params.Omega = keplerParameters.Omega / M_PI * 180;
 //    params.e = keplerParameters.e;
-//    params.i = keplerParameters.i;
-//    params.mu = keplerParameters.mu;
+//    params.i = keplerParameters.i / M_PI * 180;
 //    params.p = keplerParameters.p;
 //    params.nu = keplerParameters.nu;
-////    params.u = keplerParameters.nu + params.omega;
+//    params.u = keplerParameters.nu + params.omega;
 //    keplerParameters.r = r;
 //    params.time = start_time;
 
-//    double a = params.p / (1 - params.e * params.e);
-//
-//    double n = std::sqrt(params.mu / std::pow(a, 3));
-//    double tau = dt * n;
-//
-//    params.omega += 3./2 * helper::constant::J2 * std::pow(helper::constant::EARTH_R / params.p, 2) * std::cos(params.i) * tau / M_PI * 180;
-//    params.Omega += 3./4 * helper::constant::J2 * std::pow(helper::constant::EARTH_R / params.p, 2) * (1 - 5*std::pow(std::cos(params.i), 2)) * tau / M_PI * 180;
+    double a = params.p / (1 - params.e * params.e);
+
+    double n = std::sqrt(params.mu / std::pow(a, 3));
+    double tau = dt * n;
+
+    params.omega += 3./2 * helper::constant::J2 * std::pow(helper::constant::EARTH_R / params.p, 2) * std::cos(params.i) * tau / M_PI * 180;
+    params.Omega += 3./4 * helper::constant::J2 * std::pow(helper::constant::EARTH_R / params.p, 2) * (1 - 5*std::pow(std::cos(params.i), 2)) * tau / M_PI * 180;
 }
 
 Orbit& Orbit::updateKepler(double dt) {
@@ -326,11 +317,11 @@ Orbit& Orbit::updateKepler(double dt) {
         Orbit_DBGout << "\t|r(0)| = " << sclr_r << std::endl;
         Orbit_DBGout << "\tnu(0) = " << obj.second.nu << std::endl;
 
-//        Orbit_DBGout << "\tOmega = " << obj.second.Omega << std::endl;
-//        Orbit_DBGout << "\tomega = " << obj.second.omega << std::endl;
-//        updateParameters(obj.second, obj.first->mass(), obj.second.nu, sclr_r, dt);
-//        Orbit_DBGout << "\tOmega = " << obj.second.Omega << std::endl;
-//        Orbit_DBGout << "\tomega = " << obj.second.omega << std::endl;
+        Orbit_DBGout << "\tOmega = " << obj.second.Omega << std::endl;
+        Orbit_DBGout << "\tomega = " << obj.second.omega << std::endl;
+        updateParameters(obj.second, obj.first->mass(), sclr_r, dt);
+        Orbit_DBGout << "\tOmega = " << obj.second.Omega << std::endl;
+        Orbit_DBGout << "\tomega = " << obj.second.omega << std::endl;
 
         linear_algebra::Vector r = sclr_r * linear_algebra::Vector {std::cos(obj.second.nu), std::sin(obj.second.nu), 0, 1};
         r = mvp::action::rotate({0, 0, 1}, obj.second.Omega) *

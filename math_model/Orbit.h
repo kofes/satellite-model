@@ -60,7 +60,7 @@ public:
 
 private:
 
-    void updateParameters(OrbitParameters& params, double mass, double nu, double& r, double dt);
+    void updateParameters(OrbitParameters& params, double mass, double& r, double dt);
 
     double movement_integral(double dt, double nu, double e, double T) {
         double du = nu + dt/T;
