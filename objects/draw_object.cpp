@@ -1,8 +1,8 @@
-#include <mvp/actions/actions.h>
 #include "draw_object.h"
+#include "mvp/actions/actions.h"
 
 namespace draw {
-object::object(): m_color(0,0,0) {};
+object::object(): m_color(255,255,255) {};
 object::~object() = default;
 
 object& object::update_color(const helper::color& color) {

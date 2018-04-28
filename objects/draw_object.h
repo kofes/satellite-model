@@ -1,10 +1,10 @@
 #pragma once
 
-#include <helpers/helpers.h>
 #include "math_object.h"
+#include "helpers/helpers.h"
 
 namespace draw {
-class object: math::object {
+class object: public math::object {
 public:
     object();
     ~object() override;

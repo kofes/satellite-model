@@ -13,9 +13,9 @@ public:
 
     virtual object& update(double dt);
 
-    virtual object& dw(linear_algebra::Vector& res); //3 dimension
-    virtual object& dv(linear_algebra::Vector& res); //3 dimension
-    virtual object& mass(double& mass); // kg
+    virtual linear_algebra::Vector dw() const; //3 dimension
+    virtual linear_algebra::Vector dv() const; //3 dimension
+    virtual double mass() const; // kg
 protected:
     linear_algebra::Vector m_dw;
     linear_algebra::Vector m_dv;
