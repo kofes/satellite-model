@@ -15,7 +15,19 @@
 #define Orbit_out (std::cout)
 #else
 #define Orbit_DBGout (std::ostream(0))
-#define Orbit_out (std::ostream(0))
+#define OrbitDBG_out (std::ostream(0))
+#endif
+
+#define ORBIT_LOG
+
+#ifdef ORBIT_LOG
+#include <fstream>
+static std::ofstream orbitLog("../orbit.txt");
+#define Orbit_LOGout (orbitLog << "Orbit LOG: ")
+#define OrbitLOG_out (orbitLog)
+#else
+#define Orbit_LOGout (std::ostream(nullptr))
+#define Orbit_out (std::ostream(nullptr))
 #endif
 
 namespace math {
