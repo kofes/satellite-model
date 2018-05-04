@@ -228,8 +228,8 @@ void mouse_handler(int button, int state, int x, int y) {
 void mouse_motion_handler(int x, int y) {
     if (mouse_button == GLUT_LEFT_BUTTON)
         camera
-            .pitch(-(x - mouse_pos[0]) * 0.1f)
-            .yaw(-(y - mouse_pos[1]) * 0.1f);
+            .yaw((x - mouse_pos[0]) * 0.1f)
+            .pitch((y - mouse_pos[1]) * 0.1f);
     mouse_pos[0] = x;
     mouse_pos[1] = y;
 }
@@ -266,12 +266,12 @@ double satellite_speed = 0;
 void idle_handler() {
     for (const auto& pr: keymap)
         if (pr.second) switch (pr.first) {
-                case 'w': camera.move(-camera.target() * camera.speed()); break;
-                case 's': camera.move( camera.target() * camera.speed()); break;
+                case 'w': camera.move( camera.target() * camera.speed()); break;
+                case 's': camera.move(-camera.target() * camera.speed()); break;
+                case 'a': camera.move( camera.side() * camera.speed()); break;
+                case 'd': camera.move(-camera.side() * camera.speed()); break;
                 case ' ': camera.move( linear_algebra::Vector {0, 0, 1} * camera.speed()); break;
                 case 'c': camera.move(-linear_algebra::Vector {0, 0, 1} * camera.speed()); break;
-                case 'd': camera.move(-camera.up() * camera.speed()); break;
-                case 'a': camera.move( camera.up() * camera.speed()); break;
                 case '-': camera.zoom(-0.1); break;
                 case '+': camera.zoom( 0.1); break;
                 case 'h': satellite_speed += 10; break;
