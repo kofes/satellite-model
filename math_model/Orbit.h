@@ -51,15 +51,6 @@ private:
 
     void updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt);
 
-    double movement_integral(double dt, double nu, double e, double T) {
-        double du = nu + dt/T;
-        return (
-                (1 + e) * du -
-                        e / (6 * (1 + e)) * std::pow(du, 3) +
-                        e * (1 - e + e * e) / (120 * std::pow(1 + e, 3)) * std::pow(du, 5)
-        );
-    }
-
     std::shared_ptr<phys::object> m_centralMass;
     std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::OrbitParameters>> m_physObjects;
 
