@@ -39,10 +39,6 @@ public:
     Orbit& setCentralMass(phys::object* centralMass);
 
     Orbit& addPhysObject(const std::string& name, phys::object* physObject,
-                         const linear_algebra::Vector& satellite_start_point,
-                         const linear_algebra::Vector& satellite_start_speed);
-
-    Orbit& addPhysObject(const std::string& name, phys::object* physObject,
                          const helper::container::OrbitParameters& params);
 
     Orbit& removePhysObject(std::string& name);
