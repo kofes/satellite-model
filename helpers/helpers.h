@@ -5,3 +5,5 @@
 #include "integrals.h"
 #include "orbit.h"
 #include "constants.h"
+#include "containers.h"
+#include "optimization.h"

@@ -20,7 +20,7 @@ struct Camera::Core {
 
     linear_algebra::Vector position = {0, 0, 0};
     double fovy, as, near, far;
-    double speed = .1, yaw = 270, pitch = 180;
+    double speed = .1, yaw = 180, pitch = 0;
 };
 
 Camera::Camera(): m_core(new Core) {};
@@ -30,9 +30,10 @@ Camera::Camera(double fovy, double as, double near, double far):
 {}
 
 linear_algebra::Matrix Camera::model() {
-    linear_algebra::Vector up = -this->side();
-    linear_algebra::Vector target = this->target();
-    linear_algebra::Vector side = this->up();
+    linear_algebra::Vector up = -this->up();
+    linear_algebra::Vector target = -this->target();
+    linear_algebra::Vector side = this->side();
+    linear_algebra::Vector pos = this->position();
 
     double f = std::cos(m_core->fovy / 2) / std::sin(m_core->fovy / 2);
     double as = m_core->as;
@@ -49,7 +50,7 @@ linear_algebra::Matrix Camera::model() {
             {side[0], up[0], target[0], 0},
             {side[1], up[1], target[1], 0},
             {side[2], up[2], target[2], 0},
-            {- m_core->position * side, - m_core->position * up, - m_core->position * target, 1}
+            {- pos * side, - pos * up, - pos * target, 1}
     };
     return view * perspective;
 }
@@ -63,9 +64,9 @@ linear_algebra::Vector Camera::target() {
     double yaw = m_core->yaw * M_PI / 180;
     double pitch = m_core->pitch * M_PI / 180;
     return {
+            std::cos(yaw) * std::cos(pitch),
             std::sin(yaw) * std::cos(pitch),
-            - std::sin(pitch),
-            std::cos(yaw) * std::cos(pitch)
+            -std::sin(pitch)
     };
 }
 
@@ -73,26 +74,32 @@ linear_algebra::Vector Camera::up() {
     double yaw = m_core->yaw * M_PI / 180;
     double pitch = m_core->pitch * M_PI / 180;
     return {
+            std::cos(yaw) * std::sin(pitch),
             std::sin(yaw) * std::sin(pitch),
-            std::cos(pitch),
-            std::cos(yaw) * std::sin(pitch)
+            std::cos(pitch)
     };
 }
 
 linear_algebra::Vector Camera::side() {
-    return linear_algebra::vectorMultiply({up(), target()});
+    double yaw = m_core->yaw * M_PI / 180;
+    return {
+            -std::sin(yaw),
+            std::cos(yaw),
+            0
+    };
 }
 
 Camera& Camera::pitch(double degree) {
     degree += m_core->pitch + 360;
-    degree -= ((int)degree / 360) * 360 + 180;
-    if (90 < degree && degree < 180 || 180 < degree && degree < 270)
-        degree = degree > 180 ? 270 : 90;
-    m_core->pitch = degree + 180;
+    degree -= ((int)degree / 360) * 360;
+    if (90 < degree && degree < 270)
+        degree = (degree < 180) ? 90 : 270;
+    m_core->pitch = degree;
     return *this;
 }
 
 Camera& Camera::yaw(double degree) {
+    degree = -degree;
     degree += m_core->yaw + 360;
     degree -= ((int)degree / 360) * 360;
     m_core->yaw = degree;

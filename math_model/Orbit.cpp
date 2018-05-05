@@ -339,6 +339,7 @@ Orbit& Orbit::updateKepler(double dt) {
                 mvp::action::rotate({0, 0, 1}, obj.second.omega) *
                 mvp::action::rotate({0, 0, 1}, obj.second.nu)
         );
+        OrbitLOG_out << r << std::endl;
     }
 }
 
