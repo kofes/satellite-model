@@ -203,13 +203,13 @@ Orbit& Orbit::update(double dt /*sec*/) {
         // update satellite's track
         if (track.size() >= TRACK_MAX_SIZE)
             track.pop_front();
-        track.push_back(r);
+        track.push_back(obj.first->position());
     }
 }
 
 Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
     draw_list.clear();
-    double EARTH_R = 6371e+3;
+    double scalingFactor = helper::constant::EARTH_R / 2;
     auto* center = new shape::solid::sphere(32, 32, 1);
     center->move(linear_algebra::Vector {
                     m_centralMass->position()[0], // x
@@ -220,7 +220,7 @@ Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
                     m_centralMass->scale()[0][0], // x
                     m_centralMass->scale()[1][1], // y
                     m_centralMass->scale()[2][2]  // z
-            } / EARTH_R
+            } / scalingFactor / 2
             );
     center->orientation(m_centralMass->orientation());
     center->update_color(helper::color(150, 50, 50));
@@ -233,7 +233,7 @@ Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
                     obj->position()[0], // x
                     obj->position()[1], // y
                     obj->position()[2]  // z
-            } / EARTH_R * 2);
+            } / scalingFactor);
         draw_obj->orientation(obj->orientation());
         draw_obj->update_color(helper::color(100, 100, 100));
         draw_list.push_back(std::shared_ptr<glsl::object>(draw_obj));
@@ -245,13 +245,16 @@ Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
         if (it != track.end()) {
             linear_algebra::Vector v_start = *it;
             size_t counter = 0;
-            while (++it != track.end()) {
+            ++it;
+            while (it != track.end()) {
                 linear_algebra::Vector v_end = *it;
-                draw_obj = new shape::line(v_start / EARTH_R, v_end / EARTH_R);
-                draw_obj->update_color(helper::color((50 + counter/2) % 256, (70 + counter*2) % 256, (120 + counter) % 256));
+                draw_obj = new shape::line(linear_algebra::Vector {0, 0, 0, 1}, (v_end - v_start) / scalingFactor);
+                draw_obj->move(v_start / scalingFactor);
+                draw_obj->update_color(helper::color((50 + counter*3/2) % 256, (70 + counter*2/3) % 256, (120 + counter/3) % 256));
                 draw_list.push_back(std::shared_ptr<glsl::object>(draw_obj));
                 v_start = v_end;
                 ++counter;
+                ++it;
             }
         }
     }
