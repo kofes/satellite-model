@@ -7,7 +7,7 @@
 
 #include "shader_error.h"
 
-//#define SHADER_LOG
+#define SHADER_LOG
 
 #ifdef SHADER_LOG
 #include <iostream>
@@ -20,6 +20,10 @@ namespace glsl {
 namespace shader {
 class shader {
 public:
+    enum class ErrorCode: GLint {
+        FILE_NOT_OPEN = 1
+    };
+
     explicit shader(GLenum type);
     explicit shader(GLenum type, std::ifstream&& src);
     explicit shader(GLenum type, const std::string& src);

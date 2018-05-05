@@ -18,8 +18,10 @@ shader::shader(GLenum type) : m_core(new shader::core(type)) {
 
 shader::shader(GLenum type, std::ifstream&& src): m_core(new shader::core(type)) {
     m_core->id = glCreateShader(type);
-    if (!src.is_open())
-        SHADER_LOGout << "file not open!" << '\n';
+    if (!src.is_open()) {
+        SHADER_LOGout << "file not opened!" << '\n';
+        throw (error((GLint)shader::ErrorCode::FILE_NOT_OPEN, "file not opened"));
+    }
     std::stringstream sstream;
     {
         std::string buff;
