@@ -25,5 +25,15 @@ namespace helper {
             double s_nu = std::sin(E) * std::sqrt(1 - e * e) / tmp_E;
             return std::make_tuple(r, std::atan2(s_nu, c_nu));
         };
+
+        double shadow(
+                const helper::container::KeplerParameters& keplerParameters,
+                const linear_algebra::Vector& solar_norm,
+                const helper::container::SailParameters& sailParameters
+        ) {
+            if (std::fabs(solar_norm[0] - std::sqrt(1 - std::pow(helper::constant::EARTH_R / keplerParameters.r, 2))))
+                return 0;
+            return 1;
+        }
     }
 }
