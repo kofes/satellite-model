@@ -30,6 +30,9 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
     m_physObjects[name].first = std::shared_ptr<phys::object>(physObject);
     m_mass += m_physObjects[name].first->mass();
 
+    // initialize satellite's track
+    m_physObjectsTracks[name].clear();
+
     helper::container::OrbitParameters& parameters = m_physObjects[name].second;
     parameters = params;
 
@@ -69,6 +72,7 @@ Orbit& Orbit::removePhysObject(std::string& name) {
     if (m_physObjects[name].first != nullptr)
         m_mass -= m_physObjects[name].first->mass();
     m_physObjects.erase(name);
+    m_physObjectsTracks.erase(name);
 }
 
 void Orbit::updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt) {
@@ -160,6 +164,9 @@ Orbit& Orbit::update(double dt /*sec*/) {
         Orbit_DBGout << "name: " << pr.first << std::endl;
         auto& obj = pr.second;
 
+        // link satellite's track
+        auto& track = m_physObjectsTracks[pr.first];
+
         obj.second.t = (obj.second.t + dt) - (int)((obj.second.t + dt) / obj.second.T) * obj.second.T;
         Orbit_DBGout << "\ttime = " << obj.second.t << " (sec)" << std::endl;
 
@@ -192,6 +199,11 @@ Orbit& Orbit::update(double dt /*sec*/) {
                 mvp::action::rotate({0, 0, 1}, obj.second.nu)
         );
         OrbitLOG_out << r << std::endl;
+
+        // update satellite's track
+        if (track.size() >= TRACK_MAX_SIZE)
+            track.pop_front();
+        track.push_back(r);
     }
 }
 
@@ -216,18 +228,32 @@ Orbit& Orbit::render(std::list<std::shared_ptr<glsl::object>>& draw_list) {
 
     for (auto& pr : m_physObjects) {
         auto& obj = pr.second.first;
-        auto* draw_obj = new shape::solid::sphere(32, 32, 0.1);
+        glsl::object* draw_obj = new shape::solid::sphere(32, 32, 0.1);
         draw_obj->move(linear_algebra::Vector {
                     obj->position()[0], // x
                     obj->position()[1], // y
                     obj->position()[2]  // z
             } / EARTH_R * 2);
-//        draw_obj->scale(linear_algebra::Vector {
-//                0.5, 0.5, 0.5
-//            });
         draw_obj->orientation(obj->orientation());
         draw_obj->update_color(helper::color(100, 100, 100));
         draw_list.push_back(std::shared_ptr<glsl::object>(draw_obj));
+
+        // link satellite's track
+        auto& track = m_physObjectsTracks[pr.first];
+
+        auto it = track.begin();
+        if (it != track.end()) {
+            linear_algebra::Vector v_start = *it;
+            size_t counter = 0;
+            while (++it != track.end()) {
+                linear_algebra::Vector v_end = *it;
+                draw_obj = new shape::line(v_start / EARTH_R, v_end / EARTH_R);
+                draw_obj->update_color(helper::color((50 + counter/2) % 256, (70 + counter*2) % 256, (120 + counter) % 256));
+                draw_list.push_back(std::shared_ptr<glsl::object>(draw_obj));
+                v_start = v_end;
+                ++counter;
+            }
+        }
     }
 }
 }

@@ -62,6 +62,10 @@ private:
 
     std::shared_ptr<phys::object> m_centralMass;
     std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::OrbitParameters>> m_physObjects;
+
+    const size_t TRACK_MAX_SIZE = 100;
+    std::map<std::string, std::list<linear_algebra::Vector>> m_physObjectsTracks;
+
 };
 }
 }
