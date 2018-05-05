@@ -71,59 +71,6 @@ Orbit& Orbit::removePhysObject(std::string& name) {
     m_physObjects.erase(name);
 }
 
-Orbit& Orbit::update(double dt /*sec*/) {
-    for (auto& pr : m_physObjects) {
-        Orbit_DBGout << "name: " << pr.first << std::endl;
-        auto& obj = pr.second;
-        auto r = obj.first->position();
-        Orbit_DBGout << "\tr = " << r << " (m)" << std::endl;
-
-        obj.second.t = (obj.second.t + dt) - (int)((obj.second.t + dt) / obj.second.T) * obj.second.T;
-        Orbit_DBGout << "\ttime = " << obj.second.t << " (sec)" << std::endl;
-
-        double E = helper::orbit::anomaly(obj.second.t - obj.second.time, obj.second.p, obj.second.e, obj.second.mu);
-
-        double a = obj.second.p / (1 - obj.second.e * obj.second.e);
-        double tmp_E = 1 - obj.second.e * std::cos(E);
-
-        double sclr_r = a * tmp_E;
-        Orbit_DBGout << "\tr(E) = " << sclr_r << std::endl;
-
-        double c_nu = (std::cos(E) - obj.second.e)/tmp_E;
-        Orbit_DBGout << "\tcos(nu(E)) = " << c_nu << std::endl;
-
-        double s_nu = std::sin(E)/tmp_E * std::sqrt(1 - obj.second.e * obj.second.e);
-        Orbit_DBGout << "\tsin(nu(E)) = " << s_nu << std::endl;
-        Orbit_DBGout << "\t1 = " << s_nu*s_nu + c_nu * c_nu << std::endl;
-
-        linear_algebra::Vector dr =
-                linear_algebra::Matrix {
-                        {  obj.second.e_r[0],   obj.second.e_r[1],   obj.second.e_r[2], 0},
-                        {obj.second.e_tau[0], obj.second.e_tau[1], obj.second.e_tau[2], 0},
-                        { obj.second.norm[0],  obj.second.norm[1],  obj.second.norm[2], 0},
-                        {                 0 ,                  0 ,                  0 , 1}
-                } * linear_algebra::Vector {
-                        sclr_r *c_nu,
-                        sclr_r *s_nu, 0, 1} - r;
-        Orbit_DBGout << "\tdr = " << dr << std::endl;
-        obj.first->move(dr);
-        Orbit_DBGout << "\tsatellite pos = " << obj.first->position() << " (m)" << std::endl;
-        {
-            linear_algebra::Vector vec1 {r[0], r[1], r[2]};
-            linear_algebra::Vector vec2 {obj.first->position()[0], obj.first->position()[1], obj.first->position()[2]};
-            linear_algebra::Vector e_r = vec1 / vec1.length();
-            linear_algebra::Vector e_dr = vec2 / vec2.length();
-            double c_angle = e_dr * e_r;
-            double s_angle = linear_algebra::vectorMultiply({e_dr, e_r}).length();
-            Orbit_DBGout << "\te_r = " << e_r << std::endl;
-            Orbit_DBGout << "\te_dr = " << e_dr << std::endl;
-            obj.first->rotate(obj.second.norm, std::atan2(s_angle, c_angle) * 180 / M_PI);
-            Orbit_DBGout << "\tangle = " << std::atan2(s_angle, c_angle) * 180 / M_PI << std::endl;
-            Orbit_DBGout << "\tOrientation = " << obj.first->orientation() << std::endl;
-        }
-    }
-}
-
 void Orbit::updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt) {
     helper::container::KeplerParameters keplerParameters;
     keplerParameters.omega = params.omega * M_PI / 180;
@@ -208,8 +155,7 @@ void Orbit::updateParameters(helper::container::OrbitParameters& params, double 
     params.Omega += 3./4 * helper::constant::J2 * std::pow(helper::constant::EARTH_R / params.p, 2) * (1 - 5*std::pow(std::cos(params.i), 2)) * tau / M_PI * 180;
 }
 
-Orbit& Orbit::updateKepler(double dt) {
-//    m_centralMass->rotate({0, 1, 0}, 5);
+Orbit& Orbit::update(double dt /*sec*/) {
     for (auto& pr : m_physObjects) {
         Orbit_DBGout << "name: " << pr.first << std::endl;
         auto& obj = pr.second;

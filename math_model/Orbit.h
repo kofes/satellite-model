@@ -45,8 +45,6 @@ public:
 
     Orbit& update(double dt = 1 /*sec*/) override;
 
-    Orbit& updateKepler(double dt = 1);
-
     Orbit& render(std::list<std::shared_ptr<glsl::object>>& draw_list);
 
 private:

@@ -272,7 +272,7 @@ void idle_handler() {
                      camera.position()[0],
                      camera.position()[1],
                      camera.position()[2]);
-    v_orbit->updateKepler(satellite_speed);
+    v_orbit->update(satellite_speed);
     glutPostRedisplay();
 }
 
