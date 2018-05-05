@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Satellite)
 
 set(CMAKE_CXX_STANDARD 11)
-
-SET(CMAKE_C_FLAGS_DEBUG "-D_DEBUG")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 # add mat-vec library with headers
 add_subdirectory(mat-vec)
