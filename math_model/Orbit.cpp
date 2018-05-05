@@ -68,6 +68,11 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
     m_physObjects[name].first->rotate({0, 0, 1}, parameters.omega);
 }
 
+
+Orbit& Orbit::addPhysObjectSail(const std::string& name, const helper::container::SailParameters& params) {
+
+}
+
 Orbit& Orbit::removePhysObject(std::string& name) {
     if (m_physObjects[name].first != nullptr)
         m_mass -= m_physObjects[name].first->mass();
@@ -173,6 +178,7 @@ Orbit& Orbit::update(double dt /*sec*/) {
         double sclr_r;
 
         std::tie(sclr_r, obj.second.nu) = helper::orbit::ellipticPolarCoordinates(obj.second.t - obj.second.time, obj.second.p, obj.second.e, obj.second.mu);
+        obj.second.E = helper::orbit::anomaly(obj.second.t - obj.second.time, obj.second.p, obj.second.e, obj.second.mu);
         Orbit_DBGout << "\t|r(0)| = " << sclr_r << std::endl;
         Orbit_DBGout << "\tnu(0) = " << obj.second.nu << std::endl;
 
@@ -190,13 +196,14 @@ Orbit& Orbit::update(double dt /*sec*/) {
         Orbit_DBGout << "\tr = " << r << std::endl;
 
         obj.second.nu *= 180 / M_PI;
+        obj.second.E *= 180 / M_PI;
 
         obj.first->move(r-obj.first->position());
         obj.first->orientation(
                 mvp::action::rotate({0, 0, 1}, obj.second.Omega) *
                 mvp::action::rotate({1, 0, 0}, obj.second.i) *
                 mvp::action::rotate({0, 0, 1}, obj.second.omega) *
-                mvp::action::rotate({0, 0, 1}, obj.second.nu)
+                mvp::action::rotate({0, 0, 1}, obj.second.E)
         );
         OrbitLOG_out << r << std::endl;
 

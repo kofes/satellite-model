@@ -27,6 +27,7 @@ namespace helper {
 
             double T = 0, time = 0, t = 0; // sec
             double nu = 0; // rad
+            double E = 0; // rad
             linear_algebra::Vector norm, e_tau, e_r;
 
 

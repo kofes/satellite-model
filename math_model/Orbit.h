@@ -18,7 +18,7 @@
 #define OrbitDBG_out (std::ostream(0))
 #endif
 
-#define ORBIT_LOG
+//#define ORBIT_LOG
 
 #ifdef ORBIT_LOG
 #include <fstream>
@@ -27,7 +27,7 @@ static std::ofstream orbitLog("../orbit.txt");
 #define OrbitLOG_out (orbitLog)
 #else
 #define Orbit_LOGout (std::ostream(nullptr))
-#define Orbit_out (std::ostream(nullptr))
+#define OrbitLOG_out (std::ostream(nullptr))
 #endif
 
 namespace math {
@@ -40,6 +40,8 @@ public:
 
     Orbit& addPhysObject(const std::string& name, phys::object* physObject,
                          const helper::container::OrbitParameters& params);
+
+    Orbit& addPhysObjectSail(const std::string& name, const helper::container::SailParameters& params);
 
     Orbit& removePhysObject(std::string& name);
 
