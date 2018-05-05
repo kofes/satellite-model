@@ -163,12 +163,19 @@ int init(int argc, char* argv[]) {
 
 int init_geometry();
 
+void reshape_handler(int width, int height) {
+    glViewport(0, 0, width, height);
+    camera.as(width/(float)height);
+}
+
 int renderer(int argc, char* argv[]) {
     int errCode =
             init(argc, argv) ||
             init_geometry();
 
     if (errCode) return errCode;
+
+    glutReshapeFunc(reshape_handler);
 
     // Bind engine functions
     glutKeyboardFunc(keyboard_handler);

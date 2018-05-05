@@ -26,6 +26,8 @@ public:
 
     Camera& zoom(double px);
 
+    Camera& as(double as);
+
     const linear_algebra::Vector& position() const;
 
     double speed() const;

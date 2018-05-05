@@ -113,6 +113,11 @@ Camera& Camera::zoom(double px) {
     return *this;
 }
 
+Camera& Camera::as(double as) {
+    m_core->as = as;
+    return *this;
+}
+
 const linear_algebra::Vector& Camera::position() const {
     return m_core->position;
 }
