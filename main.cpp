@@ -250,11 +250,22 @@ int init_geometry() {
 
     helper::container::OrbitParameters params;
     params.Omega = 0;
-    params.i = 65;
+    params.i = 90;
     params.p = 6371e+3 + 650e+3;
     params.e = 0.3;
     params.omega = 40;
     v_orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite), params);
+
+    helper::container::SailParameters sailParameters;
+    sailParameters.rho = 0.9;
+    sailParameters.Bf = sailParameters.Bb = 2./3;
+    sailParameters.s = 0.9;
+    sailParameters.ef = 2;
+    sailParameters.eb = 0.1;
+    sailParameters.area = 400;
+    sailParameters.norm = {-1, 0, 0, 1};
+
+    v_orbit->addPhysObjectSail("Satellite", sailParameters);
     return 0;
 }
 

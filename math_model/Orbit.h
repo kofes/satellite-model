@@ -51,13 +51,15 @@ public:
 
 private:
 
-    void updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt);
+    void updateParameters(const std::string& name, double& r, double dt);
 
     std::shared_ptr<phys::object> m_centralMass;
     std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::OrbitParameters>> m_physObjects;
 
-    const size_t TRACK_MAX_SIZE = 100;
+    const size_t TRACK_MAX_SIZE = 400;
     std::map<std::string, std::list<linear_algebra::Vector>> m_physObjectsTracks;
+
+    std::map<std::string, helper::container::SailParameters> m_physObjectsSails;
 
 };
 }
