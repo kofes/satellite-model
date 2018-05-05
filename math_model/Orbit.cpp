@@ -34,7 +34,7 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
     // initialize start point
     m_physObjects[name].first->move(satellite_start_point);
 
-    OrbitParameters& parameters = m_physObjects[name].second;
+    helper::container::OrbitParameters& parameters = m_physObjects[name].second;
     //initialize mu
     parameters.mu = helper::constant::G * (m_centralMass->mass() + physObject->mass());
     Orbit_DBGout << "mu = " << m_physObjects[name].second.mu << std::endl;
@@ -115,7 +115,7 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
 }
 
 Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
-                            const OrbitParameters& params) {
+                            const helper::container::OrbitParameters& params) {
     if (physObject == nullptr)
         return *this;
 
@@ -124,7 +124,7 @@ Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
     m_physObjects[name].first = std::shared_ptr<phys::object>(physObject);
     m_mass += m_physObjects[name].first->mass();
 
-    OrbitParameters& parameters = m_physObjects[name].second;
+    helper::container::OrbitParameters& parameters = m_physObjects[name].second;
     parameters = params;
 
     //initialize mu
@@ -218,8 +218,8 @@ Orbit& Orbit::update(double dt /*sec*/) {
     }
 }
 
-void Orbit::updateParameters(OrbitParameters& params, double mass, double& r, double dt) {
-    Kepler::Parameters keplerParameters;
+void Orbit::updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt) {
+    helper::container::KeplerParameters keplerParameters;
     keplerParameters.omega = params.omega * M_PI / 180;
     keplerParameters.Omega = params.Omega * M_PI / 180;
     keplerParameters.e = params.e;
@@ -234,23 +234,23 @@ void Orbit::updateParameters(OrbitParameters& params, double mass, double& r, do
     double dh = 0.1;
     size_t N = std::ceil(dt / dh);
 
-    double sail_area = 400;
-    linear_algebra::Vector sail_norm {1, 0, 0};
     linear_algebra::Vector solar_norm {-1, 0, 0};
 
-    force::SailParameters sailParameters;
+    helper::container::SailParameters sailParameters;
 
     sailParameters.rho = 0.9;
     sailParameters.Bf = sailParameters.Bb = 2./3;
     sailParameters.s = 0.9;
     sailParameters.ef = 2;
     sailParameters.eb = 1.9;
+    sailParameters.norm = linear_algebra::Vector {1, 0, 0};
+    sailParameters.area = 400;
 
     for (size_t i = 1; i <= N; ++i) {
         linear_algebra::Vector f =
                 force::gravJ2(keplerParameters, mass)
 //                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sail_area, sail_norm)
-//                + force::solar(sailParameters, sail_area, solar_norm, sail_norm)
+//                + force::solar(sailParameters, solar_norm)
         ;
         Orbit_DBGout << "force: " << f << std::endl;
 //        std::cout << "gravity force: " << force1 << std::endl;

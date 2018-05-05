@@ -34,23 +34,6 @@ namespace math {
 namespace model {
 class Orbit: public phys::object {
 public:
-
-    struct OrbitParameters {
-        double mu = 0;
-
-        double T = 0, time = 0, t = 0; // sec
-        double nu = 0; // rad
-        linear_algebra::Vector norm, e_tau, e_r;
-
-
-        double p = 0; // m
-        double e = 0;
-
-        double i = 0; // rad
-        double Omega = 0;
-        double omega = 0;
-    };
-
     Orbit();
 
     Orbit& setCentralMass(phys::object* centralMass);
@@ -60,7 +43,7 @@ public:
                          const linear_algebra::Vector& satellite_start_speed);
 
     Orbit& addPhysObject(const std::string& name, phys::object* physObject,
-                         const OrbitParameters& params);
+                         const helper::container::OrbitParameters& params);
 
     Orbit& removePhysObject(std::string& name);
 
@@ -72,7 +55,7 @@ public:
 
 private:
 
-    void updateParameters(OrbitParameters& params, double mass, double& r, double dt);
+    void updateParameters(helper::container::OrbitParameters& params, double mass, double& r, double dt);
 
     double movement_integral(double dt, double nu, double e, double T) {
         double du = nu + dt/T;
@@ -84,7 +67,7 @@ private:
     }
 
     std::shared_ptr<phys::object> m_centralMass;
-    std::map<std::string, std::pair<std::shared_ptr<phys::object>, OrbitParameters>> m_physObjects;
+    std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::OrbitParameters>> m_physObjects;
 };
 }
 }

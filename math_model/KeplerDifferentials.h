@@ -4,29 +4,17 @@
 #include <helpers/integrals.h>
 
 namespace Kepler {
-    struct Parameters {
-        double p = 1;
-        double mu = 1;
-        double e = 1;
-        double nu = 0;
-        double omega = 0;
-        double Omega = 0;
-        double u = 0;
-        double i = 0;
-        double r = 1;
-    };
-
-    inline double dpdt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double dpdt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return 2 * params.r * std::sqrt(params.p / params.mu) * f[1];
     }
 
-    inline double dedt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double dedt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return std::sqrt(params.p / params.mu) *
                (f[0] * std::sin(params.nu) + f[1] * ((1 + params.r / params.p) * std::cos(params.nu)
                                                      + params.e * params.r / params.p));
     }
 
-    inline double domegadt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double domegadt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return 1 / params.e * std::sqrt(params.p / params.mu) * (
                 - f[0] * std::cos(params.nu)
                 + f[1] * (1 + params.r / params.p) * std::sin(params.nu)
@@ -34,17 +22,17 @@ namespace Kepler {
                 );
     }
 
-    inline double didt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double didt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return params.r / std::sqrt(params.mu * params.p) * std::cos(params.u) * f[2];
     }
 
-    inline double dOmegadt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double dOmegadt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return params.r / std::sqrt(params.mu * params.p) * std::sin(params.u) / std::sin(params.i) * f[2];
     }
 
     typedef double (*Integral)(helper::integral::dfdt fun, double from, double to, size_t count);
 
-    inline double dtaudt(const Parameters& params, const linear_algebra::Vector &f, Integral integ = helper::integral::rect) {
+    inline double dtaudt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f, Integral integ = helper::integral::rect) {
         auto fun = [&](double dnu) -> double {
             return 2 * std::cos(dnu) / std::pow(1 + params.e / std::cos(dnu), 3);
         };
@@ -55,7 +43,7 @@ namespace Kepler {
                 );
     }
 
-    inline double dexdt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double dexdt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         double ex =  params.e * std::cos(params.omega);
         double ey =  params.e * std::sin(params.omega);
 
@@ -66,7 +54,7 @@ namespace Kepler {
                 );
     }
 
-    inline double deydt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double deydt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         double ex =  params.e * std::cos(params.omega);
         double ey =  params.e * std::sin(params.omega);
 
@@ -77,7 +65,7 @@ namespace Kepler {
         );
     }
 
-    inline double dudt(const Parameters& params, const linear_algebra::Vector &f) {
+    inline double dudt(const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
         return std::sqrt(params.mu * params.p) / (params.r * params.r)
                - f[2] * params.r * std::cos(params.i) * std::sin(params.u)
                  / std::sqrt(params.mu * params.p);

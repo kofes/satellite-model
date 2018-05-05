@@ -241,7 +241,7 @@ int init_geometry() {
     v_orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit);
     v_orbit->setCentralMass(reinterpret_cast<phys::object*>(new math::model::Earth));
 
-    math::model::Orbit::OrbitParameters params;
+    helper::container::OrbitParameters params;
     params.Omega = 0;
     params.i = 65;
     params.p = 6371e+3 + 650e+3;

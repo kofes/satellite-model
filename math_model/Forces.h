@@ -3,13 +3,7 @@
 #include "KeplerDifferentials.h"
 
 namespace force {
-    struct SailParameters {
-        double Bf, Bb;
-        double ef, eb;
-        double rho, s;
-    };
-
-    inline linear_algebra::Vector gravJ2(const Kepler::Parameters& params, double mass) {
+    inline linear_algebra::Vector gravJ2(const helper::container::KeplerParameters& params, double mass) {
         return 3 * helper::constant::J2 * params.mu * std::pow(helper::constant::EARTH_R, 2) / (2 * std::pow(params.r, 4)) * mass *
                 linear_algebra::Vector {
             3 * std::pow(std::sin(params.i), 2) * std::pow(std::sin(params.u), 2) - 1,
@@ -18,7 +12,7 @@ namespace force {
         };
     }
 
-    inline linear_algebra::Vector atmos(const Kepler::Parameters& params,
+    inline linear_algebra::Vector atmos(const helper::container::KeplerParameters& params,
                                         double rho_atm,
                                         double sail_area,
                                         const linear_algebra::Vector& sail_norm
@@ -38,17 +32,13 @@ namespace force {
         return - helper::constant::C_d * rho_atm * sail_area / 2 * std::fabs(v_eq * sail_norm) * v_eq;
     }
 
-    inline linear_algebra::Vector solar(
-            const SailParameters& params,
-            double sail_area,
-            const linear_algebra::Vector& solar_norm,
-            const linear_algebra::Vector& sail_norm) {
+    inline linear_algebra::Vector solar(const helper::container::SailParameters& params, const linear_algebra::Vector& solar_norm) {
         double gamma = (params.ef * params.Bf - params.eb * params.Bb) / (params.ef + params.eb);
-        return -helper::constant::SOLAR_PRESSURE * sail_area * ((
-                2 * std::fabs(solar_norm * sail_norm) * params.rho * params.s
+        return -helper::constant::SOLAR_PRESSURE * params.area * ((
+                2 * std::fabs(solar_norm * params.norm) * params.rho * params.s
                 + params.Bf * params.rho * (1 - params.s) + (1 - params.rho) * gamma) *
-                (solar_norm * sail_norm) * sail_norm +
-                (1 - params.rho * params.s) * std::fabs(solar_norm * sail_norm) * solar_norm
+                (solar_norm * params.norm) * params.norm +
+                (1 - params.rho * params.s) * std::fabs(solar_norm * params.norm) * solar_norm
               );
     }
 
