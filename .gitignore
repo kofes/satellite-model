@@ -6,3 +6,9 @@ CMakeFiles
 cmake_install.cmake
 Satellite
 Satellite.cbp
+
+*.log
+*.aux
+*.pdf
+*.pdf_tex
+*.toc
