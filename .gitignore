@@ -12,3 +12,5 @@ Satellite.cbp
 *.pdf
 *.pdf_tex
 *.toc
+
+*.py
