@@ -2,13 +2,29 @@
 
 #include <functional>
 #include <list>
+#include <algorithm>
+#include <map>
+#include <LinearAlgebra.h>
 
 namespace helper {
-    namespace optimization {
-        typedef std::function<double(double, double, double)> Function;
+typedef std::function<double(const linear_algebra::Vector&)> Function;
 
-        std::tuple<double, double, double> genetic(helper::optimization::Function function);
+double sigmoid(double scale, double res);
+namespace optimization {
+    linear_algebra::Vector gradient(Function fun, bool maximization = false, size_t countArgs = 2,
+                                    const double MIN_VAL = -M_PI, const double MAX_VAL =  M_PI,
+                                    const linear_algebra::Vector& delta = linear_algebra::Vector(2, 0.0001));
 
-        std::tuple<double, double, double> gradient(helper::optimization::Function function);
-    }
+    linear_algebra::Vector full(Function fun, bool maximization = false, size_t countArgs = 2,
+                                const double MIN_VAL = -M_PI, const double MAX_VAL =  M_PI,
+                                const linear_algebra::Vector& delta = linear_algebra::Vector(2, 0.0001));
+
+    linear_algebra::Vector genetic(Function function, bool maximization = false, size_t countArgs = 2,
+                                   const double MIN_VAL = -M_PI, const double MAX_VAL =  M_PI,
+                                   const linear_algebra::Vector& delta = linear_algebra::Vector(2, 0.0001));
+
+    linear_algebra::Vector amoeba(Function function, bool maximization = false, size_t countArgs = 2,
+                                  const double MIN_VAL = -M_PI, const double MAX_VAL =  M_PI,
+                                  const linear_algebra::Vector& delta = linear_algebra::Vector(2, 0.0001));
+}
 }
