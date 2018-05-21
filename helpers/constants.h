@@ -19,8 +19,16 @@ namespace helper {
         static const double EARTH_OMEGA = 7.29e-5; // rad/sec
 
         // Solar pressure
-        static const double SOLAR_PRESSURE = 4.6e-6;
-        static const double ATMOSPHERIC_PRESSURE_0 = 101325; // Па
+        static const double SOLAR_PRESSURE = 4.56e-6; // H/m^2
+        static const double ATMOSPHERIC_PRESSURE_0 = 101325; // Pa
         static const double TEMPERATURE_0 = 288.15; // K
+
+        // Earth's orbital characteristics
+        static const double EARTH_ECCENTRICITY = 0.0167086; // (e)
+        static const double EARTH_SEMIMAJOR_AXIS = 149.6e+9; // (a) m
+        static const double EARTH_INCILATION = 7.155 * M_PI / 180; // (i)
+        static const double EARTH_LONGITUDE_ASCENDING_NODE = 174.9 * M_PI / 180; // (Omega)
+        static const double EARTH_ARGUMENT_PERAPSIS = 288.1 * M_PI / 180; // (omega)
+        static const double EARTH_ECLIPTIC = (23 + 26./60) * M_PI / 180; // (eps)
     }
 }
