@@ -7,3 +7,4 @@
 #include "constants.h"
 #include "containers.h"
 #include "optimization.h"
+#include "shadow.h"
