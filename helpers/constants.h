@@ -10,6 +10,8 @@ namespace helper {
         static const double EARTH_E_R = 6378.1e+3; // m
         static const double EARTH_P_R = 6356.8e+3; // m
         static const double EARTH_MASS = 5.97237e+24; // kg
+        static const double ATMOSPHERIC_PRESSURE_0 = 101325; // Pa
+        static const double TEMPERATURE_0 = 288.15; // K
 
         // Earth's non-izomorphic const
         static const double J2 = 1082.2e-6;
@@ -18,10 +20,9 @@ namespace helper {
         static const double C_d = 2.2;
         static const double EARTH_OMEGA = 7.29e-5; // rad/sec
 
-        // Solar pressure
+        // Solar
         static const double SOLAR_PRESSURE = 4.56e-6; // H/m^2
-        static const double ATMOSPHERIC_PRESSURE_0 = 101325; // Pa
-        static const double TEMPERATURE_0 = 288.15; // K
+        static const double SUN_RADIUS = 695700e+3; // m
 
         // Earth's orbital characteristics
         static const double EARTH_ECCENTRICITY = 0.0167086; // (e)
