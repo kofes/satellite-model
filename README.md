@@ -3,4 +3,4 @@
 ### Architecture of project is awful now, but it's in progress (alpha) and it may change in the future
 
 ### Articles
-Yandex.disk: https://yadi.sk/d/QFwxSE263SYE2p
+Yandex.disk: https://yadi.sk/d/R3zUuc4J3SYE2Y
