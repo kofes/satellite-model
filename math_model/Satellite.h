@@ -17,11 +17,18 @@ public:
             double length = 0.3
     );
 
+    Satellite& sail(
+            const helper::container::SailParameters& sailParams,
+            const linear_algebra::Vector& r
+    );
+
 private:
     double m_width;
     double m_height;
     double m_length;
-//    shape::solid::sphere shape_model;
+
+    helper::container::SailParameters& m_sailParams;
+    linear_algebra::Vector& m_r;
 };
 }
 }

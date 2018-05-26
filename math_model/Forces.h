@@ -19,17 +19,27 @@ namespace force {
     ) {
         double ex =  params.e * std::cos(params.omega);
         double ey =  params.e * std::sin(params.omega);
-        linear_algebra::Vector v_eq  = std::sqrt(params.mu / params.p) *
-        linear_algebra::Vector {
-               ex * std::sin(params.u) - ey * std::cos(params.u),
-               1 + ex * std::cos(params.u) + ey * std::sin(params.u),
-               0
-        } - helper::constant::EARTH_OMEGA * params.r * linear_algebra::Vector {
-            0,
-            std::cos(params.i),
-            std::sin(params.i) * std::cos(params.u)
+        std::cout << "scaling: " << std::sqrt(params.mu / params.p) << std::endl;
+        linear_algebra::Vector v = std::sqrt(params.mu / params.p) * linear_algebra::Vector {
+                ex * std::sin(params.u) - ey * std::cos(params.u),
+                1 + ex * std::cos(params.u) + ey * std::sin(params.u),
+                0
         };
-        return - helper::constant::C_d * rho_atm * sail_area / 2 * std::fabs(v_eq * sail_norm) * v_eq;
+
+        linear_algebra::Vector v_earth = helper::constant::EARTH_OMEGA * params.r * linear_algebra::Vector {
+                0,
+                std::cos(params.i),
+                std::sin(params.i) * std::cos(params.u)
+        };
+
+        linear_algebra::Vector v_eq  = v - v_earth;
+
+        std::cout << "v: " << v << std::endl;
+        std::cout << "v_earth: " << v_earth << std::endl;
+
+        double scaling_factor = helper::constant::C_d * rho_atm * sail_area / 2 * std::fabs(v_eq * sail_norm);
+        std::cout << "v_eq projection: " << std::fabs(v_eq * sail_norm) << std::endl;
+        return - scaling_factor * v_eq;
     }
 
     inline linear_algebra::Vector solar(const helper::container::SailParameters& params, const linear_algebra::Vector& solar_norm) {
@@ -43,6 +53,6 @@ namespace force {
     }
 
     double atm_density(double h, double L = -0.0065) {
-        return 4.8e-7;
+        return 4.8e-12;
     }
 };

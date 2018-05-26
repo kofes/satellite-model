@@ -3,7 +3,7 @@
 namespace math {
 namespace model {
 
-Earth::Earth(): phys::object(5.97237e+24) {
+Earth::Earth(): phys::object(helper::constant::EARTH_MASS) {
     this->scale({m_eR, m_eR, m_pR});
 }
 

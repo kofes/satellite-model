@@ -248,12 +248,13 @@ int init_geometry() {
     v_orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit);
     v_orbit->setCentralMass(reinterpret_cast<phys::object*>(new math::model::Earth));
 
-    helper::container::OrbitParameters params;
+    helper::container::KeplerParameters params;
     params.Omega = 0;
     params.i = 90;
     params.p = 6371e+3 + 650e+3;
     params.e = 0.3;
     params.omega = 40;
+    params.tau = 0;
     v_orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite), params);
 
     helper::container::SailParameters sailParameters;

@@ -17,9 +17,9 @@ public:
     double pR() const;
 
 private:
-    double m_R = 6371e+3; //m
-    double m_pR = 6356.8e+3; //m
-    double m_eR = 6378.1e+3; //m
+    double m_R = helper::constant::EARTH_R; //m
+    double m_pR = helper::constant::EARTH_P_R; //m
+    double m_eR = helper::constant::EARTH_E_R; //m
 };
 }
 }

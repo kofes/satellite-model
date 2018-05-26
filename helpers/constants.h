@@ -23,6 +23,8 @@ namespace helper {
         // Solar
         static const double SOLAR_PRESSURE = 4.56e-6; // H/m^2
         static const double SUN_RADIUS = 695700e+3; // m
+        static const double SUN_MASS = 1.98855e+30; // kg
+
 
         // Earth's orbital characteristics
         static const double EARTH_ECCENTRICITY = 0.0167086; // (e)

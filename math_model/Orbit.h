@@ -39,9 +39,7 @@ public:
     Orbit& setCentralMass(phys::object* centralMass);
 
     Orbit& addPhysObject(const std::string& name, phys::object* physObject,
-                         const helper::container::OrbitParameters& params);
-
-    Orbit& addPhysObjectSail(const std::string& name, const helper::container::SailParameters& params);
+                         const helper::container::KeplerParameters& params);
 
     Orbit& removePhysObject(std::string& name);
 
@@ -54,7 +52,7 @@ private:
     void updateParameters(const std::string& name, double& r, double dt);
 
     std::shared_ptr<phys::object> m_centralMass;
-    std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::OrbitParameters>> m_physObjects;
+    std::map<std::string, std::pair<std::shared_ptr<phys::object>, helper::container::KeplerParameters>> m_physObjects;
 
     const size_t TRACK_MAX_SIZE = 400;
     std::map<std::string, std::list<linear_algebra::Vector>> m_physObjectsTracks;

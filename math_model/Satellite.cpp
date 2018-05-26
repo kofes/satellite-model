@@ -8,11 +8,23 @@ Satellite::Satellite(
         double width,
         double height,
         double length
-): phys::object(m)/*, shape_model(32, 32, 1)*/ {
-//    shape_model.scale({length, height, width});
+): phys::object(m),
+   m_sailParams(),
+   m_r()
+{
+    scale({width, length, height});
     m_width = width;
     m_height = height;
     m_length = length;
 };
+
+Satellite& Satellite::sail(
+        const helper::container::SailParameters& sailParams,
+        const linear_algebra::Vector& r
+) {
+    m_sailParams = sailParams;
+    m_r = r;
+}
+
 }
 }

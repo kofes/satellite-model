@@ -1,3 +1,5 @@
+\usetikzlibrary{patterns}
+
 \section{Спецификация данных}
 ...
 \section{Функциональные требования}
@@ -27,7 +29,7 @@
 здесь $\hat{\theta}_{t_i}$, $\hat{\phi}_{t_i}$ -- оптимальные углы управления аппаратом,
 высчитанные для момента времени $t_i$; $\theta_{t_i}$, $\phi_{t_i}$ -- углы, которыми
 ориентирована система в момент времени $t_i$.\par
-  В таком случае, для наибольшей максимизации функционала, необходимо, чтобы
+  В таком случае, для наилучшей оптимизации функционала, необходимо, чтобы
 аппарат мгновенно менял свою ориентацию на наиболее оптимальную, что в условиях
 существования внешних возмущающих моментов сил и собственного вращающего момента
 спутника трудно достижимо.\par
@@ -86,6 +88,89 @@
   ||\vec{K}_{k+1} - \vec{K}_{k}|| < \zeta,
 \end{equation}
 где $\zeta$ -- специально подобранный коэффициент.
+\subsubsection{Аппроксимация управляющих углов}
+\noindent\indent Имея выборку найденных управляющих углов и углов ориентации
+аппарата возможно применить метод сглаживания управляющих углов.\par
+  Рассмотрим график изменения одного из углов в момент времени $t_{n} \rightarrow t_{n+1}$ :
+\begin{figure}[!h]%{r}{0pt}
+  \centering
+  \begin{tikzpicture}[thick,scale=0.6, every node/.style={transform shape}]
+    % coordinate system
+    \coordinate (O) at (0,0);
+    \coordinate (Y) at (0,7);
+    \coordinate (X) at (8,0);
+
+    \draw[thick, ->] (-4, 0) -- (X) node[below] {$x$};
+    \draw[thick, ->] (0, -4) -- (Y) node[left] {$y$};
+
+    % coordinates of points
+    \coordinate (W0) at (3, 1);
+    \coordinate (W1) at (5, 2);
+    \coordinate (HatW0) at (3, 4);
+    \coordinate (HatW1) at (5, 5);
+
+    \node[draw, circle, inner sep=1pt, fill] at (W0) {};
+    \node[draw, circle, inner sep=1pt, fill] at (W1) {};
+
+    \node[draw, circle, inner sep=1pt] at (HatW0) {};
+    \node[draw, circle, inner sep=1pt] at (HatW1) {};
+
+    \draw[dashed] (W0) -- (0, 1) node[left] {$\theta_{t_{n}}$};
+    \draw[dashed] (W1) -- (0, 2) node[left] {$\theta_{t_{n+1}}$};
+
+    \draw[dashed] (HatW0) -- (0, 4) node[left] {$\hat{\theta}_{t_{n}}$};
+    \draw[dashed] (HatW1) -- (0, 5) node[left] {$\hat{\theta}_{t_{n+1}}$};
+
+    \draw[dashed] (HatW0) -- (3, 0) node[below] {$t_{n}$};
+    \draw[dashed] (HatW1) -- (5, 0) node[below] {$t_{n+1}$};
+
+    % vectors
+    \draw[->] (W0) -- (W1);
+    \draw[->] (HatW0) -- (HatW1);
+
+    % fill area
+    \path[pattern=north west lines, pattern color=gray] (W0) -- (W1) -- (HatW1) -- (HatW0);
+
+  \end{tikzpicture}
+  \caption{Изменение управляющего угла и угла ориентации}
+  \label{fig:DeltaWHatW}
+\end{figure}\par
+  Из графика видно, что после попытки изменения углов ориентации, в следующем узле
+остчета, уже необходимо менять новую ориентацию используя новые управляющие углы.
+Чтобы минимизировать изменения управляющих углов и углов ориентации, воспользуемся
+применим конструкцию <<PID>>-регулятора, вида:
+\begin{equation}
+  u^{t_{n+1}} =
+      K_p \cdot s^{t_{n+1}}_{t_n}
+    + K_i \cdot \sum\limits_{k=0}^{n} s^{t_{k+1}}_{t_k} (t_{k+1} - t_k)
+    + K_d \cdot \frac{s^{t_{n+1}}_{t_n} - s^{t_{n}}_{t_{n-1}}}{t_{k+1} - t_k},
+\end{equation}
+где $u^{t_{n+1}}_{t_n}$ -- функция управления в момент времени $t_{n+1}$;
+$s^{t_{n+1}}_{t_n}$ -- невязка.\par
+  В качестве функции невязки необходимо взять такую функцию, чтобы площадь фигуры,
+образуемой на графике (\ref{fig:DeltaWHatW}) стала минимальной.\par
+  Возьмем в качестве невязки саму площадь фигуры, образуемой отрезками прямых,
+проходящих через точки $\theta_{t_{n}}$, $\theta_{t_{n+1}}$ и $\hat{\theta}_{t_{n}}$,
+$\hat{\theta}_{t_{n+1}}$:
+\begin{equation}\label{eq:SumBtwLines}
+  \begin{aligned}
+    & s^{t_{n+1}}_{t_n} = \int\limits_{t_n}^{t_{n+1}} |l_1 - l_2| dt, \\
+    & l_1: y = \frac{\theta_{t_{n+1}} - \theta_{t_{n}}}{t_{n+1} - t_{n}} \cdot (t - t_{n}),\\
+    & l_2: y = \frac{\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}}{t_{n+1} - t_{n}} \cdot (t - t_{n}),\\
+  \end{aligned}
+\end{equation}
+где $l_1$, $l_2$ -- уравнения прямых, проходящих через данные точки.\par
+  Упростим выражение (\ref{eq:SumBtwLines}), подставив уравнения прямых:
+\begin{equation}
+  \begin{aligned}
+    & s^{t_{n+1}}_{t_n} = \int\limits_{t_n}^{t_{n+1}} \left|\frac{(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})}{t_{n+1} - t_{n}}\right| \cdot |t - t_{n}| dt, \\
+    & s^{t_{n+1}}_{t_n} = \left|\frac{(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})}{t_{n+1} - t_{n}}\right| \cdot \int\limits_{t_n}^{t_{n+1}} |t - t_{n}| dt, \\
+    & s^{t_{n+1}}_{t_n} = \left|\frac{(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})}{t_{n+1} - t_{n}}\right| \cdot \int\limits_{t_n}^{t_{n+1}} |t - t_{n}| dt, \\
+    & s^{t_{n+1}}_{t_n} = \left|\frac{(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})}{t_{n+1} - t_{n}}\right| \cdot \left[ \frac{t^2_{n+1} - t^2_{n}}{2} - t_{n}(t_{n+1} - t_{n}) \right], \\
+    & s^{t_{n+1}}_{t_n} = \left|\frac{(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})}{t_{n+1} - t_{n}}\right| \cdot \frac{(t_{n+1} - t_{n})^2}{2}, \\
+    & s^{t_{n+1}}_{t_n} = \left|(\hat{\theta}_{t_{n+1}} - \hat{\theta}_{t_{n}}) - (\theta_{t_{n+1}} - \theta_{t_{n}})\right| \cdot \frac{|t_{n+1} - t_{n}|}{2}, \\
+  \end{aligned}
+\end{equation}
 \subsubsection{Оптимизация на больших участков}
 \noindent\indent Для нахождения оптимального управляющего углового функционала,
 для некотором интервале времени, необходимо решить задачу оптимизации нелинейной

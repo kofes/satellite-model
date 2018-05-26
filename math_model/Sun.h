@@ -11,7 +11,7 @@ public:
     double R() const;
 
 private:
-    double m_R = 695700e+3;
+    double m_R = helper::constant::SUN_RADIUS;
 
 };
 }

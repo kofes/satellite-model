@@ -3,19 +3,35 @@
 #include <tuple>
 #include <cmath>
 #include <LinearAlgebra.h>
+#include <objects/objects.h>
+#include <mvp/actions/actions.h>
 #include "containers.h"
 #include "constants.h"
 
 namespace helper {
 namespace orbit {
-    double anomaly(double dt, double p, double e, double mu);
+    double E(
+            const helper::container::KeplerParameters& kepParams,
+            const phys::object& main,
+            const phys::object& sat,
+            double t, double epsilon = 1e-5
+    );
 
-    std::tuple<double, double> ellipticPolarCoordinates(double dt, double p, double e, double mu);
+    double nu(const helper::container::KeplerParameters& kepParams, double E);
 
-    double shadow(
-            const helper::container::KeplerParameters& keplerParameters,
-            const linear_algebra::Vector& solar_norm,
-            const helper::container::SailParameters& sailParameters
+    double r(const helper::container::KeplerParameters& kepParams, double E);
+
+    linear_algebra::Vector r(double r, double nu);
+
+    linear_algebra::Vector r(
+            const helper::container::KeplerParameters& kepParams,
+            const linear_algebra::Vector& r
+    );
+
+    double T(
+            const helper::container::KeplerParameters& kepParams,
+            const phys::object& main,
+            const phys::object& sat
     );
 }
 }

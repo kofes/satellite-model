@@ -18,6 +18,7 @@ Orbit & Orbit::setCentralMass(phys::object* centralMass) {
     m_centralMass = std::shared_ptr<phys::object>(centralMass);
     if (m_centralMass != nullptr)
         m_mass += m_centralMass->mass();
+    return *this;
 }
 
 Orbit& Orbit::addPhysObject(const std::string& name, phys::object* physObject,
@@ -79,6 +80,7 @@ Orbit& Orbit::removePhysObject(std::string& name) {
         m_mass -= m_physObjects[name].first->mass();
     m_physObjects.erase(name);
     m_physObjectsTracks.erase(name);
+    return *this;
 }
 
 void Orbit::updateParameters(const std::string& name, double& r, double dt) {
@@ -95,7 +97,10 @@ void Orbit::updateParameters(const std::string& name, double& r, double dt) {
     keplerParameters.nu = params.nu;
     keplerParameters.u = params.nu + params.omega * M_PI / 180;
     keplerParameters.r = r;
-    double start_time = params.time;
+
+    double a = keplerParameters.p / (1 - std::pow(keplerParameters.e, 2));
+
+    double start_time = params.time * std::sqrt(a*a*a / params.mu);
 
     double dh = 0.1;
     size_t N = std::ceil(dt / dh);
@@ -113,7 +118,7 @@ void Orbit::updateParameters(const std::string& name, double& r, double dt) {
                 mvp::action::rotate({0, 0, 1}, -keplerParameters.Omega / M_PI * 180) *
                 mvp::action::rotate({1, 0, 0}, eps) *
                 mvp::action::rotate({0, 0, 1}, lambda)
-                * linear_algebra::Vector {1, 0, 0, 1};
+                * linear_algebra::Vector{1, 0, 0, 1};
 
         double theta_s = std::acos(sigma[0]);
         double psi_s = std::atan2(
@@ -121,7 +126,7 @@ void Orbit::updateParameters(const std::string& name, double& r, double dt) {
                 sigma[0] * std::sin(keplerParameters.u) - sigma[1] * std::cos(keplerParameters.u)
         );
 
-        linear_algebra::Vector solar_norm {
+        linear_algebra::Vector solar_norm{
                 std::sin(psi_s) * std::sin(theta_s),
                 std::cos(psi_s) * std::sin(theta_s),
                 std::cos(theta_s)
@@ -133,29 +138,93 @@ void Orbit::updateParameters(const std::string& name, double& r, double dt) {
                 mvp::action::rotate({1, 0, 0}, keplerParameters.i / M_PI * 180) *
                 mvp::action::rotate({0, 0, 1}, keplerParameters.omega / M_PI * 180) *
                 mvp::action::rotate({0, 0, 1}, keplerParameters.nu / M_PI * 180); // check it!
+//        {
+//            linear_algebra::Vector norm = sailParameters.norm;
+//            sailParameters.norm.resize(4, 1);
+//            sailParameters.norm = v_orientation * sailParameters.norm;
+//            sailParameters.norm.resize(3);
+//
+//            // compute resulting force
+//            linear_algebra::Vector f =
+//                    force::gravJ2(keplerParameters, obj.first->mass())
+//                    //                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sailParameters.area, sailParameters.norm)
+//                    + force::solar(sailParameters, solar_norm) *
+//                      helper::orbit::shadow(keplerParameters, solar_norm, sailParameters);
+//            f /= obj.first->mass();
+//
+//            sailParameters.norm = norm;
+//
+//            Orbit_DBGout << "original force: " << f << std::endl;
+//
+//            // reorient resulting force
+//            f.resize(4, 1);
+//            f = v_orientation * f;
+//            Orbit_DBGout << "reoriented original force: " << f << std::endl;
+//        }
 
-        // reorient sail with current satellite orientation
+//        // optimize f
+//        linear_algebra::Vector angles = helper::optimization::gradient([&] (const linear_algebra::Vector& vec) -> double {
+//            // reorient sail with current satellite orientation
+//            linear_algebra::Matrix l_orientation =
+//                    mvp::action::rotate({0, 0, 1}, vec[0] / M_PI * 180) *
+//                    mvp::action::rotate({0, 1, 0}, vec[1] / M_PI * 180) *
+//                    mvp::action::rotate({1, 0, 0}, vec[2] / M_PI * 180) *
+//                    v_orientation;
+//
+//            linear_algebra::Vector norm = sailParameters.norm;
+//            sailParameters.norm.resize(4, 1);
+//            sailParameters.norm = l_orientation * sailParameters.norm;
+//            sailParameters.norm.resize(3);
+//
+//            // compute resulting force
+//            linear_algebra::Vector f =
+//                    force::gravJ2(keplerParameters, obj.first->mass())
+//                    //                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sailParameters.area, sailParameters.norm)
+//                    + force::solar(sailParameters, solar_norm) *
+//                      helper::orbit::shadow(keplerParameters, solar_norm, sailParameters);
+//            f /= obj.first->mass();
+//
+//            sailParameters.norm = norm;
+//
+//            // reorient resulting force
+//            f.resize(4, 1);
+//            f = l_orientation * f;
+//            return f[0] + f[1];
+//        }, true, 3, -M_PI, M_PI, linear_algebra::Vector(3, 0.001));
+//
+//        // reorient sail with current satellite orientation
+//        v_orientation =
+//                mvp::action::rotate({0, 0, 1}, angles[0] / M_PI * 180) *
+//                mvp::action::rotate({0, 1, 0}, angles[1] / M_PI * 180) *
+//                mvp::action::rotate({1, 0, 0}, angles[2] / M_PI * 180) *
+//                v_orientation;
+
         linear_algebra::Vector norm = sailParameters.norm;
         sailParameters.norm.resize(4, 1);
-        sailParameters.norm = obj.first->orientation() * sailParameters.norm;
+        sailParameters.norm = v_orientation * sailParameters.norm;
         sailParameters.norm.resize(3);
+
+        // TEST
+        solar_norm = -sailParameters.norm;
+        //
 
         // compute resulting force
         linear_algebra::Vector f =
                 force::gravJ2(keplerParameters, obj.first->mass())
-//                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sailParameters.area, sailParameters.norm)
-                + force::solar(sailParameters, solar_norm) * helper::orbit::shadow(keplerParameters, solar_norm, sailParameters)
+                //                + force::atmos(keplerParameters, force::atm_density(r - helper::constant::EARTH_R), sailParameters.area, sailParameters.norm)
+                + force::solar(sailParameters, solar_norm)
+//                  * helper::orbit::shadow(keplerParameters, solar_norm, sailParameters)
         ;
         f /= obj.first->mass();
 
         sailParameters.norm = norm;
 
-        Orbit_DBGout << "original force: " << f << std::endl;
+        Orbit_DBGout << "controlled force: " << f << std::endl;
 
         // reorient resulting force
         f.resize(4, 1);
-        f = v_orientation * f;
-        Orbit_DBGout << "reoriented force: " << f << std::endl;
+//        f = v_orientation * f;
+        Orbit_DBGout << "reoriented controlled force: " << f << std::endl;
 
         // update Kepler's orbital elements
         auto v_prevParams = keplerParameters;
@@ -194,7 +263,13 @@ void Orbit::updateParameters(const std::string& name, double& r, double dt) {
     params.E = std::atan2(sinE, cosE);
 
     r = keplerParameters.r;
-//    params.time = start_time;
+
+    a = keplerParameters.p / (1 - std::pow(keplerParameters.e, 2));
+
+//    start_time = params.time * std::sqrt(a*a*a / params.mu);
+    params.time = (start_time / std::sqrt(a*a*a / params.mu));
+    double T = 2 * M_PI * std::sqrt(a*a*a / params.mu);
+    params.time -= (int)((start_time / std::sqrt(a*a*a / params.mu)) / T) * T;
 }
 
 Orbit& Orbit::update(double dt /*sec*/) {
