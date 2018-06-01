@@ -1,6 +1,6 @@
 [submodule "mat-vec"]
-	path = mat-vec
+	path = src/mat-vec
 	url = https://github.com/kofes/Vector-Matrix
 [submodule "soil"]
-	path = soil
+	path = src/soil
 	url = https://github.com/paralin/soil

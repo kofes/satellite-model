@@ -66,7 +66,7 @@ add_executable(Satellite
         ${SHAPES_SRC_FILES}
 
         ${MATH_MODELS_SRC_FILES}
-        test/test.cpp
+        main.cpp
         )
 
 target_link_libraries(Satellite
