@@ -8,7 +8,7 @@
 
 namespace math {
 namespace model {
-class Earth: phys::object {
+class Earth: public phys::object {
 public:
     Earth();
 

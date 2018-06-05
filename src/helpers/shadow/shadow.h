@@ -33,5 +33,5 @@ namespace shadow {
             const linear_algebra::Vector& r,
             const linear_algebra::Vector& rSE
     );
-}
-}
+}   // namespace shadow
+}   // namespace helper

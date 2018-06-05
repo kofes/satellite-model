@@ -3,7 +3,7 @@
 #include <LinearAlgebra.h>
 #include <map>
 #include <GL/glew.h>
-#include "draw_object.h"
+#include <objects/draw_object/draw_object.h>
 
 namespace glsl {
 class object: public draw::object {

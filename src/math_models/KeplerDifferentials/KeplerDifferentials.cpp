@@ -9,7 +9,7 @@ linear_algebra::Vector Differentials::operator()(
         const linear_algebra::Vector &force
 ) {
     double mu = helper::constant::G * main.mass();
-    double E = helper::orbit::E(params, main, sat, t);
+    double E = helper::orbit::E(params, main.mass(), sat.mass(), t);
     double r = helper::orbit::r(params, E);
     double nu = helper::orbit::nu(params, E);
 
@@ -51,11 +51,11 @@ inline double Differentials::dOmegadt(double r, double mu, double nu, const help
     return r / std::sqrt(mu * params.p) * std::sin(u) / std::sin(params.i) * f[2];
 }
 
-inline double Differentials::dtaudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f, Integral integ = helper::integral::rect) {
+inline double Differentials::dtaudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f, Integral integ) {
     auto fun = [&](double dnu) -> double {
         return 2 * std::cos(dnu) / std::pow(1 + params.e / std::cos(dnu), 3);
     };
-    double N = std::pow(params.p / r, 2) * integ(fun, 0, nu, 1000);
+    double N = std::pow(params.p / r, 2) * integ(fun, 0, nu, 0.1);
     return r * r / (params.e * mu) * (
             (params.e * N * std::sin(nu) - std::cos(nu)) * f[0] +
             N * params.p / r * f[1]

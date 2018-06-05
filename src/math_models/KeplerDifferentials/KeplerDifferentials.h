@@ -1,7 +1,6 @@
 #pragma once
 
 #include <LinearAlgebra.h>
-#include <helpers/integrals.h>
 #include <helpers/helpers.h>
 
 namespace kepler {
@@ -28,7 +27,7 @@ namespace kepler {
         Differentials() = default;
         Differentials(const Differentials&) = delete;
         ~Differentials() = default;
-        typedef double (*Integral)(helper::integral::dfdt fun, double from, double to, size_t count);
+        typedef double (*Integral)(helper::integral::function fun, double from, double to, double dh);
 
         inline double dpdt(double r, double mu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f);
         inline double dedt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f);

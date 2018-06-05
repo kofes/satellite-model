@@ -4,7 +4,7 @@
 
 namespace math {
 namespace model {
-class Sun: phys::object {
+class Sun: public phys::object {
 public:
     Sun();
 

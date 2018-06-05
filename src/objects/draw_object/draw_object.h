@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math_object.h"
+#include "../math_object/math_object.h"
 #include "helpers/helpers.h"
 
 namespace draw {

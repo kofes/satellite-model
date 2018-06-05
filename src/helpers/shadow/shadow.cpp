@@ -1,6 +1,5 @@
 #include "shadow.h"
-#include "helpers.h"
-
+#include "../helpers.h"
 
 namespace helper {
 namespace shadow {
@@ -75,5 +74,5 @@ double shadowFunction(
 
     return 1 / (1 + std::exp(-2 * (ang - sAng) / (s2Ang - sAng)));
 }
-}
-}
+}   // namespace shadow
+}   // namespace helper

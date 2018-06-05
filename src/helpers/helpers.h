@@ -1,10 +1,8 @@
 #pragma once
 
-#include "args_serializer.h"
-#include "helper_color.h"
-#include "integrals.h"
-#include "orbit.h"
+#include "args_serializer/args_serializer.h"
+#include "color/color.h"
+#include "integrals/integrals.h"
 #include "constants.h"
-#include "containers.h"
-#include "optimization.h"
-#include "shadow.h"
+#include "shadow/shadow.h"
+#include "orbit/orbit.h"

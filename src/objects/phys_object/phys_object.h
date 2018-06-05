@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math_object.h"
+#include <objects/math_object/math_object.h>
 
 namespace phys {
 class object: public math::object {

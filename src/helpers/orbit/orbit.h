@@ -3,18 +3,19 @@
 #include <tuple>
 #include <cmath>
 #include <LinearAlgebra.h>
-#include <objects/objects.h>
+#include <objects/phys_object/phys_object.h>
 #include <mvp/actions/actions.h>
-#include "containers.h"
-#include "constants.h"
+#include <helpers/containers.h>
+#include <helpers/constants.h>
 
 namespace helper {
 namespace orbit {
     double E(
             const helper::container::KeplerParameters& kepParams,
-            const phys::object& main,
-            const phys::object& sat,
-            double t, double epsilon = 1e-5
+            const double mainMass,
+            const double satMass,
+            double t,
+            double epsilon = 1e-5
     );
 
     double nu(const helper::container::KeplerParameters& kepParams, double E);
@@ -30,8 +31,8 @@ namespace orbit {
 
     double T(
             const helper::container::KeplerParameters& kepParams,
-            const phys::object& main,
-            const phys::object& sat
+            const double mainMass,
+            const double satMass
     );
 }
 }
