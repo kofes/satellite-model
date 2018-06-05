@@ -15,8 +15,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(main main.cpp)
 
 target_link_libraries(main
-        ${OPENGL_LIBRARIES}
-        ${GLUT_LIBRARY}
-        ${GLEW_LIBRARIES}
-        soil
+#        ${OPENGL_LIBRARIES}
+#        ${GLUT_LIBRARY}
+#        ${GLEW_LIBRARIES}
+        # soil
         Satellite)

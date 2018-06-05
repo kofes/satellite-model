@@ -31,18 +31,18 @@ endif()
 # add shader helpers
 file(GLOB SHADER_SRC_FILES shader/*.h shader/*.cpp)
 
-# add SOIL
-add_subdirectory(soil)
-include_directories(soil/inc)
+# # add SOIL
+# add_subdirectory(soil)
+# include_directories(soil/inc)
 
-# add texture helper
-set(TEXTURE_SRC_FILES texture/texture.h texture/texture.cpp)
+# # add texture helper
+# set(TEXTURE_SRC_FILES texture/texture.h texture/texture.cpp)
 
 # set helpers
-file(GLOB HELPERS_SRC_FILES helpers/*.cpp helpers/*.h)
+file(GLOB_RECURSE HELPERS_SRC_FILES helpers/*.cpp helpers/*.h)
 
 # add object helpers
-file(GLOB OBJECTS_SRC_FILES objects/*.h objects/*.cpp)
+file(GLOB_RECURSE OBJECTS_SRC_FILES objects/*.h objects/*.cpp)
 
 # add shapes objects
 file(GLOB SHAPES_SRC_FILES
@@ -50,15 +50,15 @@ file(GLOB SHAPES_SRC_FILES
         shapes/*/*.h shapes/*/*.cpp)
 
 # add math models
-file(GLOB MATH_MODELS_SRC_FILES math_model/*.h math_model/*.cpp)
+file(GLOB_RECURSE MATH_MODELS_SRC_FILES math_models/*.h math_models/*.cpp)
 
 # include root
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(Satellite SHARED 
+add_library(Satellite SHARED
         ${MVP_SRC_FILES}
         ${SHADER_SRC_FILES}
-        ${TEXTURE_SRC_FILES}
+        # ${TEXTURE_SRC_FILES}
 
         ${HELPERS_SRC_FILES}
 
@@ -73,10 +73,9 @@ target_link_libraries(Satellite
         ${OPENGL_LIBRARIES}
         ${GLUT_LIBRARY}
         ${GLEW_LIBRARIES}
-        soil
+        # soil
         linear_algebra)
 
-# add_subdirectory(test)
-
-# enable_testing ()
-# add_test (NAME test COMMAND TEST)
+add_subdirectory(test)
+enable_testing ()
+add_test (NAME test COMMAND TEST_Satellite)
