@@ -52,15 +52,15 @@ double Satellite::mass() const {
 Satellite& Satellite::angles(const linear_algebra::Vector& src) {
     if (src.size() < 3)
         return *this;
-    for (size_t i = 0; i < src.size(); ++i)
-        m_angles[i] = src[i];
+    m_angles = src;
+    m_angles.resize(3);
     return *this;
 }
 Satellite& Satellite::position(const linear_algebra::Vector& src) {
     if (src.size() < 3)
         return *this;
-    for (size_t i = 0; i < src.size(); ++i)
-        m_position[i] = src[i];
+    m_position = src;
+    m_position.resize(4, 1);
     return *this;
 }
 

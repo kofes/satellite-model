@@ -383,7 +383,7 @@ void render() {
     glutSwapBuffers();
 }
 
-int main(int argc, char* argv[]) {
+void test0() {
     // calculate force function for visualization
 
     // DEBUG
@@ -484,6 +484,39 @@ int main(int argc, char* argv[]) {
              // + (2*r + (1 + r/v_physObjectKeplerParameters.p) * std::cos(nu) + v_physObjectKeplerParameters.e * r / v_physObjectKeplerParameters.p)*force[1]
              << std::endl;
     }
+}
+
+void test1() {
+    math::model::SatelliteOrbit v_satOrbit(0, false);
+
+    // DEBUG
+    v_physObjectKeplerParameters.e = 0.01;
+    v_physObjectKeplerParameters.p = 6371e+3 + 650e+3;
+    v_physObjectKeplerParameters.Omega = 45;
+    v_physObjectKeplerParameters.i = 45;
+    v_physObjectKeplerParameters.omega = 45;
+    //
+
+    // initialize sail parameters
+    helper::container::SailParameters params;
+    params.Bf = 2./3; params.Bb = 2./3;
+    params.ef = 1; params.eb = 0;
+    params.rho = 0.9; params.s = 0.8;
+    params.area = 400;
+    linear_algebra::Vector sail_norm {-1, 0, 0}; // at linked orientation system
+    linear_algebra::Vector r {-1, 0, 0};
+
+    math::model::Satellite v_satellite;
+    v_satellite.sail(params, r);
+
+    v_satOrbit.satellite(v_satellite);
+    v_satOrbit.parameters(v_physObjectKeplerParameters);
+
+    v_satOrbit.update(1);
+}
+
+int main(int argc, char* argv[]) {
+    test1();
 
     // renderer(argc, argv);
     return 0;

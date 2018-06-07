@@ -34,6 +34,7 @@ public:
 
 private:
     void resetSatellite();
+    void updateParameters(double& sclrR, double& nu, double dt, double dh = 1);
 
     double m_time;
 
