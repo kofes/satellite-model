@@ -7,6 +7,11 @@ object::object(double mass) :
         m_dv(linear_algebra::Vector(3, 0)),
         m_mass(mass)
 {}
+object::object(const object& src): math::object(src) {
+    m_dw = src.m_dw;
+    m_dv = src.m_dv;
+    m_mass = src.m_mass;
+}
 object::~object() = default;
 
 object& object::update_dw(linear_algebra::Vector& src) {

@@ -6,6 +6,7 @@ namespace phys {
 class object: public math::object {
 public:
     explicit object(double mass);
+    object(const object& src);
     ~object() override;
 
     virtual object& update_dw(linear_algebra::Vector& src); //3 dimension

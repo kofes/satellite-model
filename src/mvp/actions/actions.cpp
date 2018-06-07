@@ -29,6 +29,34 @@ linear_algebra::Matrix rotate(const linear_algebra::Vector& axis, double degree)
     };
 }
 
+linear_algebra::Matrix R_x(double degree) {
+    return {
+        {1, 0, 0, 0},
+        {0, std::cos(degree), -std::sin(degree), 0},
+        {0, std::sin(degree), std::cos(degree), 0},
+        {0, 0, 0, 1}
+    };
+}
+
+linear_algebra::Matrix R_y(double degree) {
+    return {
+        {std::cos(degree), 0, std::sin(degree), 0},
+        {0, 1, 0, 0},
+        {-std::sin(degree), 0, std::cos(degree), 0},
+        {0, 0, 0, 1}
+    };
+}
+
+linear_algebra::Matrix R_z(double degree) {
+    return {
+        {std::cos(degree), -std::sin(degree), 0, 0},
+        {std::sin(degree), std::cos(degree), 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    };
+}
+
+
 linear_algebra::Matrix scale(const linear_algebra::Vector& scale) {
     if (scale.size() < 3)
         return linear_algebra::Matrix();

@@ -8,7 +8,7 @@
 #include "shader.h"
 #include "shader_error.h"
 
-#define SHADER_PROGRAM_LOG
+// #define SHADER_PROGRAM_LOG
 
 #ifdef SHADER_PROGRAM_LOG
 #include <iostream>

@@ -6,6 +6,7 @@ namespace math {
 class object {
 public:
     object();
+    object(const object& src);
     virtual ~object();
 
     virtual object& rotate(const linear_algebra::Vector& axis, double angle);

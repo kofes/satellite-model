@@ -46,12 +46,14 @@ linear_algebra::Vector atmos(const helper::container::KeplerParameters& params,
 
 linear_algebra::Vector solar(const helper::container::SailParameters& params, const linear_algebra::Vector& solar_norm) {
     double gamma = (params.ef * params.Bf - params.eb * params.Bb) / (params.ef + params.eb);
-    return -helper::constant::SOLAR_PRESSURE * params.area * ((
-            2 * std::fabs(solar_norm * params.norm) * params.rho * params.s
-            + params.Bf * params.rho * (1 - params.s) + (1 - params.rho) * gamma) *
-            (solar_norm * params.norm) * params.norm +
-            (1 - params.rho * params.s) * std::fabs(solar_norm * params.norm) * solar_norm
-          );
+    double a1 = 1 - params.rho * params.s;
+    double a2 = params.Bf * params.rho * (1 - params.s) + (1 - params.rho) * gamma;
+    double a3 = params.rho * params.s;
+    return helper::constant::SOLAR_PRESSURE  * (
+            - a1 * (params.norm * solar_norm) * solar_norm
+            + a2 * (params.norm * solar_norm) * params.norm
+            - 2 * a3 * (params.norm * solar_norm) * (params.norm * solar_norm) * params.norm
+          ) * params.area;
 }
 
 double atm_density(double h, double L) {

@@ -28,8 +28,12 @@ linear_algebra::Vector gradient(Function fun, bool maximization, size_t countArg
 ) {
     size_t countIterations = 0;
 
-    linear_algebra::Vector vec1((minVals + maxVals) / 2),
-                           vec2((minVals + maxVals) / 2),
+    std::srand(std::time(nullptr));
+    double RV1 = std::rand() * 1. / RAND_MAX;
+    double RV2 = std::rand() * 1. / RAND_MAX;
+
+    linear_algebra::Vector vec1((maxVals - minVals)*RV1 + minVals),
+                           vec2((maxVals - minVals)*RV2 + minVals),
                            grad(countArgs);
     linear_algebra::Vector delta_i(countArgs, 0);
     double lambda = 0.01;

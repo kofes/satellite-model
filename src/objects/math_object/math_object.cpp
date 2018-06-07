@@ -8,6 +8,12 @@ object::object() :
         m_orientation(linear_algebra::Matrix::eye(4, 1))
 {}
 
+object::object(const object& src) {
+    m_position = src.m_position;
+    m_scale = src.m_scale;
+    m_orientation = src.m_orientation;
+}
+
 object::~object() = default;
 
 object& object::rotate(const linear_algebra::Vector& axis, double angle) {
