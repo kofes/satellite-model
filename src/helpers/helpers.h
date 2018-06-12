@@ -6,3 +6,4 @@
 #include "constants.h"
 #include "shadow/shadow.h"
 #include "orbit/orbit.h"
+#include "optimization/optimization.h"
