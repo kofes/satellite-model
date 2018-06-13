@@ -1,5 +1,7 @@
 #include "orbit.h"
 
+#define __TIME_LIMIT__ (200)
+
 namespace helper {
 namespace orbit {
     double E(
@@ -14,11 +16,11 @@ namespace orbit {
         double n = std::sqrt(mu / (a*a*a));
 
         double M = n * (t - kepParams.tau);
-        double E1 = 0, E0 = 0;
+        double E1 = M, E0 = 0;
+        
         do {
-            double tmp = E1;
+            E0 = E1;
             E1 = kepParams.e * std::sin(E0) + M;
-            E0 = tmp;
         } while (std::fabs(E1 - E0) > epsilon);
 
         return E1;
@@ -32,7 +34,7 @@ namespace orbit {
 
     double r(const helper::container::KeplerParameters& kepParams, double E) {
         double a = kepParams.p / (1 - std::pow(kepParams.e, 2));
-        return a * (1 - kepParams.e * std::sin(E));
+        return a * (1 - kepParams.e * std::cos(E));
     }
 
     linear_algebra::Vector r(double r, double nu) {
@@ -45,9 +47,9 @@ namespace orbit {
     ) {
         auto R = r;
         R.resize(4, 1);
-        return mvp::action::rotate({0, 0, 1}, kepParams.omega) *
+        return mvp::action::rotate({0, 0, 1}, kepParams.Omega) *
                mvp::action::rotate({1, 0, 0}, kepParams.i) *
-               mvp::action::rotate({0, 0, 1}, kepParams.Omega) *
+               mvp::action::rotate({0, 0, 1}, kepParams.omega) *
                R;
     }
 
