@@ -8,7 +8,9 @@ Satellite::Satellite(
         double width,
         double height,
         double length
-): m_sailParams(), m_sail_r() {
+): m_sailParams(), m_sail_r(),
+   m_angles(linear_algebra::Vector(3)),
+      m_position(linear_algebra::Vector(4, 0)) {
     m_mass = m;
     m_width = width;
     m_height = height;
@@ -72,6 +74,24 @@ linear_algebra::Vector& Satellite::position() {
     return m_position;
 }
 
+linear_algebra::Matrix Satellite::orientation() const {
+    return linear_algebra::Matrix {
+        {std::cos(m_angles[0]) * std::cos(m_angles[1]), std::sin(m_angles[1]), -std::sin(m_angles[0]) * std::cos(m_angles[1]), 0},
+            {
+                -std::cos(m_angles[0]) * std::sin(m_angles[1]) * std::cos(m_angles[2]) + std::sin(m_angles[0]) * std::sin(m_angles[2]),
+                 std::cos(m_angles[1]) * std::cos(m_angles[2]),
+                 std::sin(m_angles[0]) * std::sin(m_angles[1]) * std::cos(m_angles[2]) + std::cos(m_angles[0]) * std::sin(m_angles[2]),
+                 0
+             },
+             {
+                 std::cos(m_angles[0]) * std::sin(m_angles[1]) * std::sin(m_angles[2]) + std::sin(m_angles[0]) * std::cos(m_angles[2]),
+                 -std::cos(m_angles[1]) * std::sin(m_angles[2]),
+                 -std::sin(m_angles[0]) * std::sin(m_angles[1]) * std::sin(m_angles[2]) + std::cos(m_angles[0]) * std::cos(m_angles[2]),
+                 0
+             },
+        {0, 0, 0, 1}
+    };
+}
 
 }
 }

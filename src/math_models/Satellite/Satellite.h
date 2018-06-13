@@ -32,6 +32,7 @@ public:
     Satellite& position(const linear_algebra::Vector& src); // 3-dimension
 
     linear_algebra::Vector& angles();   // 3-dimension
+    linear_algebra::Matrix orientation() const; // matrix of orientation
     linear_algebra::Vector& position(); // 3-dimension
 
 private:
