@@ -96,7 +96,7 @@ int init(int argc, char* argv[]) {
     glutCreateWindow(title.c_str());
 
     glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
+    //    glEnable(GL_CULL_FACE);
     glEnable(GL_LESS);
 
     glewExperimental = GL_TRUE;
@@ -108,10 +108,10 @@ int init(int argc, char* argv[]) {
 
     LOGout << "Status: using GLEW " << glewGetString(GLEW_VERSION) << endl;
 
-#ifdef MAIN_DBG
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback((GLDEBUGPROC)MAIN_DBG_MessageCallback, nullptr);
-#endif
+    #ifdef MAIN_DBG
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback((GLDEBUGPROC)MAIN_DBG_MessageCallback, nullptr);
+    #endif
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glViewport(0, 0, width, height);
@@ -244,7 +244,7 @@ void mouse_motion_handler(int x, int y) {
 }
 
 static std::shared_ptr<math::model::SatelliteOrbit> v_satOrbit;
-static std::list<glsl::object> objects;
+static std::list<std::shared_ptr<glsl::object>> v_objects;
 
 // DEBUG
 helper::container::KeplerParameters v_physObjectKeplerParameters;
@@ -314,17 +314,17 @@ void idle_handler() {
                      camera.position()[0],
                      camera.position()[1],
                      camera.position()[2]);
-    if (v_physObjectParams[0] < v_physObjectKeplerParameters.Omega) {
-        v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
-        v_physObjectParams[0] += v_physObjectRotationSpeedz;
-    } else if (v_physObjectParams[1] < v_physObjectKeplerParameters.i) {
-        v_physObject.orientation(mvp::action::R_x(v_physObjectRotationSpeedx / 180 * M_PI) * v_physObject.orientation());
-        v_physObjectParams[1] += v_physObjectRotationSpeedx;
-    } else if (v_physObjectParams[2] < v_physObjectKeplerParameters.omega) {
-        v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
-        v_physObjectParams[2] += v_physObjectRotationSpeedz;
-    }
-    // v_satOrbit->update(satellite_speed);
+    // if (v_physObjectParams[0] < v_physObjectKeplerParameters.Omega) {
+    //     v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[0] += v_physObjectRotationSpeedz;
+    // } else if (v_physObjectParams[1] < v_physObjectKeplerParameters.i) {
+    //     v_physObject.orientation(mvp::action::rotate({1, 0, 0}, v_physObjectRotationSpeedx / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[1] += v_physObjectRotationSpeedx;
+    // } else if (v_physObjectParams[2] < v_physObjectKeplerParameters.omega) {
+    //     v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[2] += v_physObjectRotationSpeedz;
+    // }
+    v_satOrbit->update(satellite_speed);
     glutPostRedisplay();
 }
 
@@ -333,39 +333,10 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // VP matrix
     linear_algebra::Matrix vp = camera.model();
-    shape::solid::sphere v_physObjectVisualiser(32, 32);
-    v_physObjectVisualiser.orientation(v_physObject.orientation());
-    v_physObjectVisualiser.update_color(helper::color(150, 140, 200));
-    v_physObjectVisualiser
-            .vertex(shmap["obj_position"])
-            .normal(shmap["obj_normal"])
-            .model(shmap["model"])
-            .mvp(shmap["mvp"])
-            .sampler_selector(shmap["select_samplers"])
-            .material_ambient(shmap["material_ambient"])
-            .material_diffuse(shmap["material_diffuse"])
-            .material_specular(shmap["material_specular"])
-            .material_emission(shmap["material_emission"])
-            .material_shininess(shmap["material_shininess"])
-            .show_normals(vp)
-            .render(vp);
-    shape::solid::sphere(32, 32)
-            .vertex(shmap["obj_position"])
-            .normal(shmap["obj_normal"])
-            .model(shmap["model"])
-            .mvp(shmap["mvp"])
-            .sampler_selector(shmap["select_samplers"])
-            .material_ambient(shmap["material_ambient"])
-            .material_diffuse(shmap["material_diffuse"])
-            .material_specular(shmap["material_specular"])
-            .material_emission(shmap["material_emission"])
-            .material_shininess(shmap["material_shininess"])
-            .show_normals(vp)
-            .render(vp);
-    // v_satOrbit->render(objects);
-    //
-    // for (auto& object: objects)
-    //     object
+    // shape::solid::sphere v_physObjectVisualiser(32, 32);
+    // v_physObjectVisualiser.orientation(v_physObject.orientation());
+    // v_physObjectVisualiser.update_color(helper::color(150, 140, 200));
+    // v_physObjectVisualiser
     //         .vertex(shmap["obj_position"])
     //         .normal(shmap["obj_normal"])
     //         .model(shmap["model"])
@@ -378,6 +349,34 @@ void render() {
     //         .material_shininess(shmap["material_shininess"])
     //         .show_normals(vp)
     //         .render(vp);
+    // shape::solid::sphere(32, 32)
+    //         .vertex(shmap["obj_position"])
+    //         .normal(shmap["obj_normal"])
+    //         .model(shmap["model"])
+    //         .mvp(shmap["mvp"])
+    //         .sampler_selector(shmap["select_samplers"])
+    //         .material_ambient(shmap["material_ambient"])
+    //         .material_diffuse(shmap["material_diffuse"])
+    //         .material_specular(shmap["material_specular"])
+    //         .material_emission(shmap["material_emission"])
+    //         .material_shininess(shmap["material_shininess"])
+    //         .show_normals(vp)
+    //         .render(vp);
+    v_satOrbit->render(v_objects);
+
+    for (auto object: v_objects)
+        object->vertex(shmap["obj_position"])
+            .normal(shmap["obj_normal"])
+            .model(shmap["model"])
+            .mvp(shmap["mvp"])
+            .sampler_selector(shmap["select_samplers"])
+            .material_ambient(shmap["material_ambient"])
+            .material_diffuse(shmap["material_diffuse"])
+            .material_specular(shmap["material_specular"])
+            .material_emission(shmap["material_emission"])
+            .material_shininess(shmap["material_shininess"])
+            .show_normals(vp)
+            .render(vp);
 
     glUseProgram(0);
     glutSwapBuffers();
@@ -511,13 +510,14 @@ void test1() {
 
     v_satOrbit.satellite(v_satellite);
     v_satOrbit.parameters(v_physObjectKeplerParameters);
-
-    v_satOrbit.update(1);
+    size_t COUNT_ITERATIONS = 500;
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i)
+        v_satOrbit.update(1);
 }
 
 int main(int argc, char* argv[]) {
-    test1();
+    // test1();
 
-    // renderer(argc, argv);
+    renderer(argc, argv);
     return 0;
 }
