@@ -66,151 +66,255 @@ SatelliteOrbit& SatelliteOrbit::update(double dt /*sec*/) {
 }
 
 void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, double dh) {
-    helper::container::KeplerParameters v_kParameters;
-    v_kParameters.p = m_keplerParmeters.p;
-    v_kParameters.e = m_keplerParmeters.e;
-    v_kParameters.omega = m_keplerParmeters.omega * M_PI / 180;
-    v_kParameters.Omega = m_keplerParmeters.Omega * M_PI / 180;
-    v_kParameters.i = m_keplerParmeters.i * M_PI / 180;
-    v_kParameters.tau = m_keplerParmeters.tau;
+    linear_algebra::Vector result = helper::integral::rkf78(
+        [&](const linear_algebra::Vector& val, double t) {
+            // copy parameters to container
+            helper::container::KeplerParameters tmp_parameters;
+            tmp_parameters.p = val[0];
+            tmp_parameters.e = val[1];
+            tmp_parameters.omega = val[2];
+            tmp_parameters.i = val[3];
+            tmp_parameters.Omega = val[4];
+            tmp_parameters.tau = val[5];
+            double tmp_u = val[6];
 
-    double v_mu = helper::constant::G * (m_Earth.mass() + m_satellite.mass());
-    double v_nu = nu;
-    double v_u = nu + m_keplerParmeters.omega * M_PI / 180;
-    double v_r = sclrR;
+            // initialize solar parameters
+            double tmp_lambda = 90;
+            double tmp_angleScalingFactor = 4;
 
-    size_t N = std::ceil(dt / dh);
+            // make solar normal vector !at global orientation system!
+            linear_algebra::Vector sigma =
+                    mvp::action::R_x(-tmp_parameters.i) *
+                    mvp::action::R_z(-tmp_parameters.Omega) *
+                    mvp::action::R_x(helper::constant::EARTH_ECLIPTIC) *
+                    mvp::action::R_z(tmp_lambda)
+                    * linear_algebra::Vector {1, 0, 0, 1};
 
-    // initialize solar parameters
-    double v_lambda = 90;
-    double v_angleScalingFactor = 4;
+            double theta_s = std::acos(sigma[0]);
+            double psi_s = std::atan2(
+                    sigma[0] * std::cos(tmp_u) + sigma[1] * std::sin(tmp_u),
+                    sigma[0] * std::sin(tmp_u) - sigma[1] * std::cos(tmp_u)
+            );
 
-    for (size_t i = 0; i <= N; ++i) {
-        // TODO:
-        // make solar normal vector !at global orientation system!
-        linear_algebra::Vector sigma =
-                mvp::action::R_x(-v_kParameters.i) *
-                mvp::action::R_z(-v_kParameters.Omega) *
-                mvp::action::R_x(helper::constant::EARTH_ECLIPTIC) *
-                mvp::action::R_z(v_lambda)
-                * linear_algebra::Vector {1, 0, 0, 1};
+            linear_algebra::Vector solar_norm {
+                    std::sin(psi_s) * std::sin(theta_s),
+                    std::cos(psi_s) * std::sin(theta_s),
+                    std::cos(theta_s)
+            };
 
-        double theta_s = std::acos(sigma[0]);
-        double psi_s = std::atan2(
-                sigma[0] * std::cos(v_u) + sigma[1] * std::sin(v_u),
-                sigma[0] * std::sin(v_u) - sigma[1] * std::cos(v_u)
-        );
+            // intialize main orientation system
+            linear_algebra::Matrix orbital_orientation =
+                        mvp::action::R_z(tmp_parameters.Omega) *
+                        mvp::action::R_x(tmp_parameters.i) *
+                        mvp::action::R_z(tmp_parameters.omega) *
+                        mvp::action::R_z(tmp_u);
 
-        linear_algebra::Vector solar_norm {
-                std::sin(psi_s) * std::sin(theta_s),
-                std::cos(psi_s) * std::sin(theta_s),
-                std::cos(theta_s)
-        };
+            // reorient sail norm to orbital orientation system
+            auto sail_norm = m_satellite.sailParameters().norm;
 
-        // intialize main orientation system
-        linear_algebra::Matrix orbital_orientation =
-                    mvp::action::R_z(v_kParameters.Omega) *
-                    mvp::action::R_x(v_kParameters.i) *
-                    mvp::action::R_z(v_kParameters.omega) *
-                    mvp::action::R_z(v_nu);
+            orbital_orientation.resize(3, 0);
+            sail_norm.resize(3);
 
-        // reorient sail norm to orbital orientation system
-        auto sail_norm = m_satellite.sailParameters().norm;
+            sail_norm = orbital_orientation * sail_norm; // to orbital orientation system
 
-        orbital_orientation.resize(3, 0);
-        sail_norm.resize(3);
+            // NEW!
+            linear_algebra::Matrix satellite_orientation =
+                        mvp::action::R_x(m_satellite.angles()[2]) * // gamma
+                        mvp::action::R_z(m_satellite.angles()[1]) * // beta
+                        mvp::action::R_y(m_satellite.angles()[0]);  // alpha
+            // reorient sail norm to global orientation system
+            satellite_orientation.resize(3, 0);
+            auto params = m_satellite.sailParameters();
+            params.norm = satellite_orientation * sail_norm; // to global orientation system
 
-        sail_norm = orbital_orientation * sail_norm; // to orbital orientation system
+            double tmp_mu = helper::constant::G * (m_Earth.mass() + m_satellite.mass());
+            double tmp_E = helper::orbit::E(tmp_parameters, m_Earth.mass(), m_satellite.mass(), t);
+            double tmp_r = helper::orbit::r(tmp_parameters, tmp_E);
+            double tmp_nu = helper::orbit::nu(tmp_parameters, tmp_E);
 
-       //  // TODO: find out optimization angles
-       //  linear_algebra::Vector res_angles = helper::optimization::amoeba([&] (const linear_algebra::Vector& x) -> double {
-       //      auto v_angles = m_satellite.angles();
-       //      v_angles += x; // 3 dimentions !
-       //
-       //      // intialize linked orientation system
-       //      linear_algebra::Matrix satellite_orientation = m_satellite.orientation();
-       //
-       //      // reorient sail norm to global orientation system
-       //      satellite_orientation.resize(3, 0);
-       //      auto params = m_satellite.sailParameters();
-       //
-       //      params.norm = satellite_orientation * sail_norm; // to global orientation system
-       //
-       //      auto force =
-       //                   force::solar(params, solar_norm)
-       //                 // + force::atmos(v_physObjectKeplerParameters, 4.8e-12, params.area, params.norm, mu, r, nu)
-       //                 ;
-       //
-       //      double result = (std::sin(v_nu)) * force[0]
-       //      + (2*v_r + (1 + v_r/v_kParameters.p) * std::cos(v_nu) + v_kParameters.e * v_r / v_kParameters.p) * force[1];
-       //
-       //      result /= m_satellite.mass();
-       //
-       //      return result;
-       // },
-       //     true,
-       //     3,
-       //     linear_algebra::Vector(3, -M_PI / 180 / dh),
-       //     linear_algebra::Vector(3, M_PI / 180 / dh),
-       //     150
-       // );
+            auto force =
+                        + force::gravJ2(tmp_parameters, m_satellite.mass(), tmp_mu, tmp_r, tmp_nu)
+                        + force::solar(params, solar_norm)
+                        + force::atmos(tmp_parameters, force::atm_density(tmp_r - m_Earth.R()), params.area, params.norm, tmp_mu, tmp_r, tmp_nu)
+                       ;
+             //
 
-       // auto v_angles = m_satellite.angles();
-       // m_satellite.angles(v_angles + res_angles.normalize() * v_angleScalingFactor / M_PI);
-       // TODO:
-       linear_algebra::Matrix satellite_orientation =
-                   mvp::action::R_x(m_satellite.angles()[2]) * // gamma
-                   mvp::action::R_z(m_satellite.angles()[1]) * // beta
-                   mvp::action::R_y(m_satellite.angles()[0]);  // alpha
-       // reorient sail norm to global orientation system
-       satellite_orientation.resize(3, 0);
-       auto params = m_satellite.sailParameters();
-       params.norm = satellite_orientation * sail_norm; // to global orientation system
+            auto tmp_acceleration = force / m_satellite.mass();
+            // update Kepler's orbital elements
+            auto tmp_newParams = kepler::differentials::parameters(
+                tmp_parameters,
+                m_Earth.mass(),
+                m_satellite.mass(),
+                t,
+                tmp_acceleration
+            );
 
-       auto force =
-                    force::solar(params, solar_norm)
-                  // + force::atmos(v_physObjectKeplerParameters, 4.8e-12, params.area, params.norm, mu, r, nu)
-                  ;
-        //
+            double tmp_dU = kepler::differentials::dudt(
+                tmp_r,
+                tmp_mu,
+                tmp_nu,
+                tmp_parameters,
+                tmp_acceleration);
 
-        // std::cout << "force: " << force << std::endl;
-        // return 0;
+            return linear_algebra::Vector {
+                tmp_newParams.p,                  // 0
+                tmp_newParams.e,                  // 1
+                tmp_newParams.omega, // 2
+                tmp_newParams.i,     // 3
+                tmp_newParams.Omega, // 4
+                tmp_newParams.tau,                // 5
+                tmp_dU                             // 6
+            };
+        },
+        linear_algebra::Vector {
+            m_keplerParmeters.p,                      // 0
+            m_keplerParmeters.e,                      // 1
+            m_keplerParmeters.omega * M_PI / 180,     // 2
+            m_keplerParmeters.i * M_PI / 180,         // 3
+            m_keplerParmeters.Omega * M_PI / 180,     // 4
+            m_keplerParmeters.tau,                    // 5
+            nu + m_keplerParmeters.omega * M_PI / 180 // 6
+        },
+        m_time - dt,
+        m_time,
+        dh
+    );
 
-       auto acceleration = force / m_satellite.mass();
-       // update Kepler's orbital elements
-       auto v_newkParams = kepler::differentials::parameters(v_kParameters, m_Earth.mass(), m_satellite.mass(), (m_time - dt) + i*dh, acceleration);
+   //  size_t N = std::ceil(dt / dh);
+   //
+   //  for (size_t i = 0; i <= N; ++i) {
+   //      // make solar normal vector !at global orientation system!
+   //      linear_algebra::Vector sigma =
+   //              mvp::action::R_x(-v_kParameters.i) *
+   //              mvp::action::R_z(-v_kParameters.Omega) *
+   //              mvp::action::R_x(helper::constant::EARTH_ECLIPTIC) *
+   //              mvp::action::R_z(v_lambda)
+   //              * linear_algebra::Vector {1, 0, 0, 1};
+   //
+   //      double theta_s = std::acos(sigma[0]);
+   //      double psi_s = std::atan2(
+   //              sigma[0] * std::cos(v_u) + sigma[1] * std::sin(v_u),
+   //              sigma[0] * std::sin(v_u) - sigma[1] * std::cos(v_u)
+   //      );
+   //
+   //      linear_algebra::Vector solar_norm {
+   //              std::sin(psi_s) * std::sin(theta_s),
+   //              std::cos(psi_s) * std::sin(theta_s),
+   //              std::cos(theta_s)
+   //      };
+   //
+   //      // intialize main orientation system
+   //      linear_algebra::Matrix orbital_orientation =
+   //                  mvp::action::R_z(v_kParameters.Omega) *
+   //                  mvp::action::R_x(v_kParameters.i) *
+   //                  mvp::action::R_z(v_kParameters.omega) *
+   //                  mvp::action::R_z(v_nu);
+   //
+   //      // reorient sail norm to orbital orientation system
+   //      auto sail_norm = m_satellite.sailParameters().norm;
+   //
+   //      orbital_orientation.resize(3, 0);
+   //      sail_norm.resize(3);
+   //
+   //      sail_norm = orbital_orientation * sail_norm; // to orbital orientation system
+   //
+   //     //  // TODO: find out optimization angles
+   //     //  linear_algebra::Vector res_angles = helper::optimization::amoeba([&] (const linear_algebra::Vector& x) -> double {
+   //     //      auto v_angles = m_satellite.angles();
+   //     //      v_angles += x; // 3 dimentions !
+   //     //
+   //     //      // intialize linked orientation system
+   //     //      linear_algebra::Matrix satellite_orientation = m_satellite.orientation();
+   //     //
+   //     //      // reorient sail norm to global orientation system
+   //     //      satellite_orientation.resize(3, 0);
+   //     //      auto params = m_satellite.sailParameters();
+   //     //
+   //     //      params.norm = satellite_orientation * sail_norm; // to global orientation system
+   //     //
+   //     //      auto force =
+   //     //                   force::solar(params, solar_norm)
+   //     //                 // + force::atmos(v_physObjectKeplerParameters, 4.8e-12, params.area, params.norm, mu, r, nu)
+   //     //                 ;
+   //     //
+   //     //      double result = (std::sin(v_nu)) * force[0]
+   //     //      + (2*v_r + (1 + v_r/v_kParameters.p) * std::cos(v_nu) + v_kParameters.e * v_r / v_kParameters.p) * force[1];
+   //     //
+   //     //      result /= m_satellite.mass();
+   //     //
+   //     //      return result;
+   //     // },
+   //     //     true,
+   //     //     3,
+   //     //     linear_algebra::Vector(3, -M_PI / 180 / dh),
+   //     //     linear_algebra::Vector(3, M_PI / 180 / dh),
+   //     //     150
+   //     // );
+   //
+   //     // auto v_angles = m_satellite.angles();
+   //     // m_satellite.angles(v_angles + res_angles.normalize() * v_angleScalingFactor / M_PI);
+   //     // TODO:
+   //     linear_algebra::Matrix satellite_orientation =
+   //                 mvp::action::R_x(m_satellite.angles()[2]) * // gamma
+   //                 mvp::action::R_z(m_satellite.angles()[1]) * // beta
+   //                 mvp::action::R_y(m_satellite.angles()[0]);  // alpha
+   //     // reorient sail norm to global orientation system
+   //     satellite_orientation.resize(3, 0);
+   //     auto params = m_satellite.sailParameters();
+   //     params.norm = satellite_orientation * sail_norm; // to global orientation system
+   //
+   //     auto force =
+   //                  force::solar(params, solar_norm)
+   //                + force::atmos(v_kParameters, 4.8e-12, params.area, params.norm, v_mu, v_r, v_nu)
+   //                ;
+   //      //
+   //
+   //      // std::cout << "force: " << force << std::endl;
+   //      // return 0;
+   //
+   //     auto acceleration = force / m_satellite.mass();
+   //     // update Kepler's orbital elements
+   //     auto v_newkParams = kepler::differentials::parameters(v_kParameters, m_Earth.mass(), m_satellite.mass(), (m_time - dt) + i*dh, acceleration);
+   //
+   //     double tmp_mu = helper::constant::G * (m_Earth.mass() + m_satellite.mass());
+   //     double tmp_E = helper::orbit::E(v_kParameters, m_Earth.mass(), m_satellite.mass(), (m_time - dt) + i*dh);
+   //     double tmp_r = helper::orbit::r(v_kParameters, tmp_E);
+   //     double tmp_nu = helper::orbit::nu(v_kParameters, tmp_E);
+   //
+   //     v_u += kepler::differentials::dudt(tmp_r, tmp_mu, tmp_nu, v_kParameters, acceleration) * dh;
+   //
+   //     v_kParameters.p += v_newkParams.p * dh;
+   //     v_kParameters.e += v_newkParams.e * dh;
+   //     v_kParameters.omega += v_newkParams.omega * dh;
+   //     v_kParameters.i += v_newkParams.i * dh;
+   //     v_kParameters.Omega += v_newkParams.Omega * dh;
+   //     v_kParameters.tau += v_newkParams.tau * dh;
+   //
+   //     v_nu = v_u - v_kParameters.omega;
+   //
+   //     double cosE = (std::cos(v_nu) + v_kParameters.e) / (1 + v_kParameters.e * std::cos(v_nu));
+   //
+   //     v_r = v_kParameters.p * (1 - v_kParameters.e * cosE) / (1 - std::pow(v_kParameters.e, 2));
+   // }
 
-       double tmp_mu = helper::constant::G * (m_Earth.mass() + m_satellite.mass());
-       double tmp_E = helper::orbit::E(v_kParameters, m_Earth.mass(), m_satellite.mass(), (m_time - dt) + i*dh);
-       double tmp_r = helper::orbit::r(v_kParameters, tmp_E);
-       double tmp_nu = helper::orbit::nu(v_kParameters, tmp_E);
+   // std::cout << "res: " << result << std::endl;
 
-       v_u += kepler::differentials::dudt(tmp_r, tmp_mu, tmp_nu, v_kParameters, acceleration) * dh;
-
-       v_kParameters.p += v_newkParams.p * dh;
-       v_kParameters.e += v_newkParams.e * dh;
-       v_kParameters.omega += v_newkParams.omega * dh;
-       v_kParameters.i += v_newkParams.i * dh;
-       v_kParameters.Omega += v_newkParams.Omega * dh;
-       v_kParameters.tau += v_newkParams.tau * dh;
-
-       v_nu = v_u - v_kParameters.omega;
-
-       double cosE = (std::cos(v_nu) + v_kParameters.e) / (1 + v_kParameters.e * std::cos(v_nu));
-
-       v_r = v_kParameters.p * (1 - v_kParameters.e * cosE) / (1 - std::pow(v_kParameters.e, 2));
-   }
+   double v_u = nu + m_keplerParmeters.omega * M_PI / 180;
 
    // write result:
-   m_keplerParmeters.p = v_kParameters.p;
-   m_keplerParmeters.e = v_kParameters.e;
-   m_keplerParmeters.omega = v_kParameters.omega / M_PI * 180;
-   m_keplerParmeters.Omega = v_kParameters.Omega / M_PI * 180;
-   m_keplerParmeters.i = v_kParameters.i / M_PI * 180;
-   // m_keplerParmeters.tau = v_kParameters.tau;
+   m_keplerParmeters.p += result[0];
+   m_keplerParmeters.e += result[1];
+   m_keplerParmeters.omega += result[2] / M_PI * 180;
+   m_keplerParmeters.i += result[3] / M_PI * 180;
+   m_keplerParmeters.Omega += result[4] / M_PI * 180;
+   // m_keplerParmeters.tau += result[5];
+   v_u += result[6];
+
+   double v_E = helper::orbit::E(m_keplerParmeters, m_Earth.mass(), m_satellite.mass(), m_time);
+   double v_r = helper::orbit::r(m_keplerParmeters, v_E);
 
    sclrR = v_r;
-   nu = v_nu;
+   nu = v_u - m_keplerParmeters.omega * M_PI / 180;
 }
 
 math::model::Satellite SatelliteOrbit::satellite() {
