@@ -1,38 +1,41 @@
 #include "KeplerDifferentials.h"
 
 namespace kepler {
-linear_algebra::Vector Differentials::operator()(
+namespace differentials {
+helper::container::KeplerParameters parameters(
         const helper::container::KeplerParameters& params,
-        const phys::object& main,
-        const phys::object& sat,
+        const double mainMass,
+        const double satMass,
         const double t,
         const linear_algebra::Vector &force
 ) {
-    double mu = helper::constant::G * main.mass();
-    double E = helper::orbit::E(params, main.mass(), sat.mass(), t);
+    double mu = helper::constant::G * (mainMass + satMass);
+    double E = helper::orbit::E(params, mainMass, satMass, t);
     double r = helper::orbit::r(params, E);
     double nu = helper::orbit::nu(params, E);
 
-    return linear_algebra::Vector {
-        dpdt(r, mu, params, force),
-        dedt(r, mu, nu, params, force),
-        domegadt(r, mu, nu, params, force),
-        dOmegadt(r, mu, nu, params, force),
-        didt(r, mu, nu, params, force),
-        dtaudt(r, mu, nu, params, force)
-    };
+    helper::container::KeplerParameters result;
+
+    result.p = dpdt(r, mu, params, force);
+    result.e = dedt(r, mu, nu, params, force);
+    result.omega = domegadt(r, mu, nu, params, force);
+    result.i = didt(r, mu, nu, params, force);
+    result.Omega = dOmegadt(r, mu, nu, params, force);
+    result.tau = dtaudt(r, mu, nu, params, force);
+
+    return result;
 }
 
-inline double Differentials::dpdt(double r, double mu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double dpdt(double r, double mu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     return 2 * r * std::sqrt(params.p / mu) * f[1];
 }
 
-inline double Differentials::dedt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double dedt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     return std::sqrt(params.p / mu) *
            (f[0] * std::sin(nu) + f[1] * ((1 + r / params.p) * std::cos(nu) + params.e * r / params.p));
 }
 
-inline double Differentials::domegadt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double domegadt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double u = params.omega + nu;
     return 1 / params.e * std::sqrt(params.p / mu) * (
             - f[0] * std::cos(nu)
@@ -41,17 +44,17 @@ inline double Differentials::domegadt(double r, double mu, double nu, const help
     );
 }
 
-inline double Differentials::didt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double didt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double u = params.omega + nu;
     return r / std::sqrt(mu * params.p) * std::cos(u) * f[2];
 }
 
-inline double Differentials::dOmegadt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double dOmegadt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double u = params.omega + nu;
     return r / std::sqrt(mu * params.p) * std::sin(u) / std::sin(params.i) * f[2];
 }
 
-inline double Differentials::dtaudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f, Integral integ) {
+double dtaudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f, Integral integ) {
     auto fun = [&](double dnu) -> double {
         return 2 * std::cos(dnu) / std::pow(1 + params.e / std::cos(dnu), 3);
     };
@@ -62,7 +65,7 @@ inline double Differentials::dtaudt(double r, double mu, double nu, const helper
     );
 }
 
-inline double Differentials::dexdt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double dexdt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double ex =  params.e * std::cos(params.omega);
     const double ey =  params.e * std::sin(params.omega);
     const double u = params.omega + nu;
@@ -74,7 +77,7 @@ inline double Differentials::dexdt(double r, double mu, double nu, const helper:
     );
 }
 
-inline double Differentials::deydt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double deydt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double ex =  params.e * std::cos(params.omega);
     const double ey =  params.e * std::sin(params.omega);
     const double u = params.omega + nu;
@@ -86,7 +89,7 @@ inline double Differentials::deydt(double r, double mu, double nu, const helper:
     );
 }
 
-inline double Differentials::dudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
+double dudt(double r, double mu, double nu, const helper::container::KeplerParameters& params, const linear_algebra::Vector &f) {
     const double u = params.omega + nu;
 
     return std::sqrt(mu * params.p) / (r * r)
@@ -94,13 +97,14 @@ inline double Differentials::dudt(double r, double mu, double nu, const helper::
              / std::sqrt(mu * params.p);
 }
 
-inline double Differentials::r(double p, double e, double omega, double u) {
+double r(double p, double e, double omega, double u) {
     double ex =  e * std::cos(omega);
     double ey =  e * std::sin(omega);
     return p / (1 + ex * std::cos(u) + ey * std::sin(u));
 }
 
-inline double Differentials::r(double p, double e, double nu) {
+double r(double p, double e, double nu) {
     return p / (1 + e * std::cos(nu));
+}
 }
 }
