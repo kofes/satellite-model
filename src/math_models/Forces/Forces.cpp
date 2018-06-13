@@ -21,7 +21,6 @@ linear_algebra::Vector atmos(const helper::container::KeplerParameters& params,
     double u = params.omega + nu;
     double ex =  params.e * std::cos(params.omega);
     double ey =  params.e * std::sin(params.omega);
-    std::cout << "scaling: " << std::sqrt(mu / params.p) << std::endl;
     linear_algebra::Vector v = std::sqrt(mu / params.p) * linear_algebra::Vector {
             ex * std::sin(u) - ey * std::cos(u),
             1 + ex * std::cos(u) + ey * std::sin(u),
@@ -36,11 +35,7 @@ linear_algebra::Vector atmos(const helper::container::KeplerParameters& params,
 
     linear_algebra::Vector v_eq  = v - v_earth;
 
-    std::cout << "v: " << v << std::endl;
-    std::cout << "v_earth: " << v_earth << std::endl;
-
     double scaling_factor = helper::constant::C_d * rho_atm * sail_area / 2 * std::fabs(v_eq * sail_norm);
-    std::cout << "v_eq projection: " << std::fabs(v_eq * sail_norm) << std::endl;
     return - scaling_factor * v_eq;
 }
 
