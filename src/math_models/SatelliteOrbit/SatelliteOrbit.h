@@ -8,6 +8,7 @@
 #include <helpers/helpers.h>
 #include <math_models/Satellite/Satellite.h>
 #include <math_models/Earth/Earth.h>
+#include <math_models/Forces/Forces.h>
 #include <shapes/shapes.h>
 
 namespace math {
@@ -30,7 +31,7 @@ public:
     math::model::Satellite satellite();
     helper::container::KeplerParameters parameters();
 
-    SatelliteOrbit& render(std::list<glsl::object>& result);
+    SatelliteOrbit& render(std::list<std::shared_ptr<glsl::object>>& result);
 
 private:
     void resetSatellite();
@@ -43,7 +44,7 @@ private:
     helper::container::KeplerParameters m_keplerParmeters;
 
     bool m_save_track;
-    const size_t TRACK_COUNT_POINTS = 400;
+    const size_t TRACK_MAX_COUNT_POINTS = 400;
     std::list<linear_algebra::Vector> m_track;
 };
 }
