@@ -7,12 +7,11 @@
 #include "helpers/helpers.h"
 #include "shader/shader.h"
 #include "shader/shader_program.h"
-#include <math_model/Orbit.h>
-#include <math_model/Earth.h>
-#include <math_model/Satellite.h>
+#include <math_models/math_models.h>
 #include "mvp/camera/camera.h"
-
+#include <math_models/Forces/Forces.h>
 #include "shapes/shapes.h"
+#include <ctime>
 
 #define MAIN_LOG
 #define MAIN_DBG
@@ -61,8 +60,9 @@ static std::map<std::string, GLuint> shmap;
 static std::map<int, bool> keymap;
 
 int init(int argc, char* argv[]) {
-    serialize::args(argc, argv)
-            .handle("width", [&] (const serialize::values& values, const string& error) {
+    serialize::map::args(argc, argv)
+            .handle("width", [&] (const serialize::values& values,
+                                  const helper::serialize::ERR_CODE& err) {
                 int tmp = 0;
                 for (const string& value: values) {
                     stringstream sstream(value);
@@ -71,7 +71,8 @@ int init(int argc, char* argv[]) {
                 }
                 if (tmp > 0) width = tmp;
             })
-            .handle("height", [&] (const serialize::values& values, const string& error) {
+            .handle("height", [&] (const serialize::values& values,
+                                   const helper::serialize::ERR_CODE& err) {
                 int tmp = 0;
                 for (const string& value: values) {
                     stringstream sstream(value);
@@ -80,7 +81,8 @@ int init(int argc, char* argv[]) {
                 }
                 if (tmp > 0) height = tmp;
             })
-            .handle("title", [&] (const serialize::values& values, const string& error) {
+            .handle("title", [&] (const serialize::values& values,
+                                  const helper::serialize::ERR_CODE& err) {
                 title = values.empty() ? title : values.front();
             });
 
@@ -94,7 +96,7 @@ int init(int argc, char* argv[]) {
     glutCreateWindow(title.c_str());
 
     glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
+    //    glEnable(GL_CULL_FACE);
     glEnable(GL_LESS);
 
     glewExperimental = GL_TRUE;
@@ -106,10 +108,10 @@ int init(int argc, char* argv[]) {
 
     LOGout << "Status: using GLEW " << glewGetString(GLEW_VERSION) << endl;
 
-#ifdef MAIN_DBG
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback((GLDEBUGPROC)MAIN_DBG_MessageCallback, nullptr);
-#endif
+    #ifdef MAIN_DBG
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback((GLDEBUGPROC)MAIN_DBG_MessageCallback, nullptr);
+    #endif
 
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glViewport(0, 0, width, height);
@@ -120,8 +122,8 @@ int init(int argc, char* argv[]) {
         glsl::shader::program program;
         program_id = program
             // 'make' shader program
-                .add(glsl::shader::shader(GL_VERTEX_SHADER, ifstream("../glsl/vertex.glsl")).compile())
-                .add(glsl::shader::shader(GL_FRAGMENT_SHADER, ifstream("../glsl/fragment.glsl")).compile())
+                .add(glsl::shader::shader(GL_VERTEX_SHADER, ifstream("src/glsl/vertex.glsl")).compile())
+                .add(glsl::shader::shader(GL_FRAGMENT_SHADER, ifstream("src/glsl/fragment.glsl")).compile())
                 .link()
             // [vertex shader]: link attributes & uniforms
                 .link("mvp", glsl::shader::field::uniform, shmap["mvp"])
@@ -241,21 +243,35 @@ void mouse_motion_handler(int x, int y) {
     mouse_pos[1] = y;
 }
 
-static std::shared_ptr<math::model::Orbit> v_orbit;
-static std::list<std::shared_ptr<glsl::object>> objects;
+static std::shared_ptr<math::model::SatelliteOrbit> v_satOrbit;
+static std::list<std::shared_ptr<glsl::object>> v_objects;
+
+// DEBUG
+helper::container::KeplerParameters v_physObjectKeplerParameters;
+static double v_physObjectRotationSpeedx = 0.1;
+static double v_physObjectRotationSpeedy = 0.1;
+static double v_physObjectRotationSpeedz = 0.1;
+static linear_algebra::Vector v_physObjectParams {
+    0,  //Omega
+    0,  // i
+    0   // omega
+};
+static phys::object v_physObject(10);
+//
 
 int init_geometry() {
-    v_orbit = std::shared_ptr<math::model::Orbit>(new math::model::Orbit);
-    v_orbit->setCentralMass(reinterpret_cast<phys::object*>(new math::model::Earth));
-
-    helper::container::OrbitParameters params;
+    helper::container::KeplerParameters params;
     params.Omega = 0;
     params.i = 90;
     params.p = 6371e+3 + 650e+3;
     params.e = 0.3;
     params.omega = 40;
-    v_orbit->addPhysObject("Satellite", reinterpret_cast<phys::object*>(new math::model::Satellite), params);
-
+    params.tau = 0;
+// DEBUG
+v_physObjectKeplerParameters.Omega = 45;
+v_physObjectKeplerParameters.i = 45;
+v_physObjectKeplerParameters.omega = 45;
+//
     helper::container::SailParameters sailParameters;
     sailParameters.rho = 0.9;
     sailParameters.Bf = sailParameters.Bb = 2./3;
@@ -263,9 +279,17 @@ int init_geometry() {
     sailParameters.ef = 2;
     sailParameters.eb = 0.1;
     sailParameters.area = 400;
-    sailParameters.norm = {-1, 0, 0, 1};
+    sailParameters.norm = {1, 0, 0, 1};
 
-    v_orbit->addPhysObjectSail("Satellite", sailParameters);
+    linear_algebra::Vector sailR = {-1, 0, 0, 1};
+
+    math::model::Satellite sat;
+    sat.sail(sailParameters, sailR);
+
+    v_satOrbit = std::shared_ptr<math::model::SatelliteOrbit>(new math::model::SatelliteOrbit);
+    v_satOrbit->satellite(sat);
+    v_satOrbit->parameters(params);
+
     return 0;
 }
 
@@ -290,7 +314,17 @@ void idle_handler() {
                      camera.position()[0],
                      camera.position()[1],
                      camera.position()[2]);
-    v_orbit->update(satellite_speed);
+    // if (v_physObjectParams[0] < v_physObjectKeplerParameters.Omega) {
+    //     v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[0] += v_physObjectRotationSpeedz;
+    // } else if (v_physObjectParams[1] < v_physObjectKeplerParameters.i) {
+    //     v_physObject.orientation(mvp::action::rotate({1, 0, 0}, v_physObjectRotationSpeedx / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[1] += v_physObjectRotationSpeedx;
+    // } else if (v_physObjectParams[2] < v_physObjectKeplerParameters.omega) {
+    //     v_physObject.orientation(mvp::action::R_z(v_physObjectRotationSpeedz / 180 * M_PI) * v_physObject.orientation());
+    //     v_physObjectParams[2] += v_physObjectRotationSpeedz;
+    // }
+    v_satOrbit->update(satellite_speed);
     glutPostRedisplay();
 }
 
@@ -299,12 +333,39 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // VP matrix
     linear_algebra::Matrix vp = camera.model();
+    // shape::solid::sphere v_physObjectVisualiser(32, 32);
+    // v_physObjectVisualiser.orientation(v_physObject.orientation());
+    // v_physObjectVisualiser.update_color(helper::color(150, 140, 200));
+    // v_physObjectVisualiser
+    //         .vertex(shmap["obj_position"])
+    //         .normal(shmap["obj_normal"])
+    //         .model(shmap["model"])
+    //         .mvp(shmap["mvp"])
+    //         .sampler_selector(shmap["select_samplers"])
+    //         .material_ambient(shmap["material_ambient"])
+    //         .material_diffuse(shmap["material_diffuse"])
+    //         .material_specular(shmap["material_specular"])
+    //         .material_emission(shmap["material_emission"])
+    //         .material_shininess(shmap["material_shininess"])
+    //         .show_normals(vp)
+    //         .render(vp);
+    // shape::solid::sphere(32, 32)
+    //         .vertex(shmap["obj_position"])
+    //         .normal(shmap["obj_normal"])
+    //         .model(shmap["model"])
+    //         .mvp(shmap["mvp"])
+    //         .sampler_selector(shmap["select_samplers"])
+    //         .material_ambient(shmap["material_ambient"])
+    //         .material_diffuse(shmap["material_diffuse"])
+    //         .material_specular(shmap["material_specular"])
+    //         .material_emission(shmap["material_emission"])
+    //         .material_shininess(shmap["material_shininess"])
+    //         .show_normals(vp)
+    //         .render(vp);
+    v_satOrbit->render(v_objects);
 
-    v_orbit->render(objects);
-
-    for (auto& object: objects)
-        object->
-            vertex(shmap["obj_position"])
+    for (auto object: v_objects)
+        object->vertex(shmap["obj_position"])
             .normal(shmap["obj_normal"])
             .model(shmap["model"])
             .mvp(shmap["mvp"])
@@ -321,7 +382,142 @@ void render() {
     glutSwapBuffers();
 }
 
+void test0() {
+    // calculate force function for visualization
+
+    // DEBUG
+    v_physObjectKeplerParameters.e = 0.01;
+    v_physObjectKeplerParameters.p = 6371e+3 + 650e+3;
+    v_physObjectKeplerParameters.Omega = 45;
+    v_physObjectKeplerParameters.i = 45;
+    v_physObjectKeplerParameters.omega = 45;
+    //
+
+    // ininitalize mass parameters
+    double mainMass = helper::constant::EARTH_MASS;
+    double satMass = 30;
+    double mu = helper::constant::G * (satMass + mainMass);
+
+    // initialize dynamic parameters (nu, t)
+    // std::srand(std::time(nullptr));
+    double epsilon = 1e-5;
+    double t = 1000;
+    // double t = std::rand() * 1. / RAND_MAX * 1000;
+    double E = helper::orbit::E(v_physObjectKeplerParameters, mainMass, satMass, t, epsilon);
+    double nu = helper::orbit::nu(v_physObjectKeplerParameters, E);
+    double r = helper::orbit::r(v_physObjectKeplerParameters, E);
+
+
+    // addition Kepler's parameters
+    double u = v_physObjectKeplerParameters.omega / 180 * M_PI + nu;
+
+    // initialize sail parameters
+    helper::container::SailParameters params;
+    params.Bf = 2./3; params.Bb = 2./3;
+    params.ef = 1; params.eb = 0;
+    params.rho = 0.9; params.s = 0.8;
+    params.area = 400;
+    linear_algebra::Vector sail_norm {-1, 0, 0}; // at linked orientation system
+
+    // initialize solar parameters
+    double lambda = 90;
+    // make solar normal vector !at global orientation system!
+    linear_algebra::Vector sigma =
+            mvp::action::R_x(-v_physObjectKeplerParameters.i / 180 * M_PI) *
+            mvp::action::R_z(-v_physObjectKeplerParameters.Omega / 180 * M_PI) *
+            mvp::action::R_x(helper::constant::EARTH_ECLIPTIC) *
+            mvp::action::R_z(lambda / 180 * M_PI)
+            * linear_algebra::Vector {1, 0, 0, 1};
+
+    double theta_s = std::acos(sigma[0]);
+    double psi_s = std::atan2(
+            sigma[0] * std::cos(u) + sigma[1] * std::sin(u),
+            sigma[0] * std::sin(u) - sigma[1] * std::cos(u)
+    );
+
+    linear_algebra::Vector solar_norm {
+            std::sin(psi_s) * std::sin(theta_s),
+            std::cos(psi_s) * std::sin(theta_s),
+            std::cos(theta_s)
+    };
+
+    // intialize main orientation system
+    linear_algebra::Matrix orbital_orientation =
+                mvp::action::R_z(v_physObjectKeplerParameters.Omega / 180 * M_PI) *
+                mvp::action::R_x(v_physObjectKeplerParameters.i / 180 * M_PI) *
+                mvp::action::R_z(v_physObjectKeplerParameters.omega / 180 * M_PI) *
+                mvp::action::R_z(nu / M_PI * 180);
+
+    // reorient sail norm to orbital orientation system
+    orbital_orientation.resize(3, 0);
+    sail_norm = orbital_orientation * sail_norm; // to orbital orientation system
+
+    std::ofstream fout("output.txt");
+    double d1 = 0.05, d2 = 0.05, d3 = 0.1;
+    size_t N1 = 2*M_PI / d1,
+           N2 = 2*M_PI / d2,
+           N3 = 2*M_PI / d3;
+
+    for (size_t i1 = 0; i1 < N1; ++i1)
+    for (size_t i2 = 0; i2 < N2; ++i2)
+    // for (size_t i3 = 0; i3 < N3; ++i3)
+    {
+        // intialize linked orientation system
+        linear_algebra::Matrix satellite_orientation =
+                    // mvp::action::R_x(i3*d3 - M_PI) * // gamma
+                    mvp::action::R_z(i2*d2 - M_PI) * // beta
+                    mvp::action::R_y(i1*d1 - M_PI);  // alpha
+
+        // reorient sail norm to global orientation system
+        satellite_orientation.resize(3, 0);
+        params.norm = satellite_orientation * sail_norm; // to global orientation system
+        auto force =
+                     force::solar(params, solar_norm)
+                   // + force::atmos(v_physObjectKeplerParameters, 4.8e-12, params.area, params.norm, mu, r, nu)
+                   ;
+        fout << i1*d1 - M_PI << ' '
+             << i2*d2 - M_PI << ' '
+             // << i3*d3 - M_PI << ' '
+             <<
+             (std::sin(nu)) * force[0]
+             // + (2*r + (1 + r/v_physObjectKeplerParameters.p) * std::cos(nu) + v_physObjectKeplerParameters.e * r / v_physObjectKeplerParameters.p)*force[1]
+             << std::endl;
+    }
+}
+
+void test1() {
+    math::model::SatelliteOrbit v_satOrbit(0, false);
+
+    // DEBUG
+    v_physObjectKeplerParameters.e = 0.01;
+    v_physObjectKeplerParameters.p = 6371e+3 + 650e+3;
+    v_physObjectKeplerParameters.Omega = 45;
+    v_physObjectKeplerParameters.i = 45;
+    v_physObjectKeplerParameters.omega = 45;
+    //
+
+    // initialize sail parameters
+    helper::container::SailParameters params;
+    params.Bf = 2./3; params.Bb = 2./3;
+    params.ef = 1; params.eb = 0;
+    params.rho = 0.9; params.s = 0.8;
+    params.area = 400;
+    linear_algebra::Vector sail_norm {-1, 0, 0}; // at linked orientation system
+    linear_algebra::Vector r {-1, 0, 0};
+
+    math::model::Satellite v_satellite;
+    v_satellite.sail(params, r);
+
+    v_satOrbit.satellite(v_satellite);
+    v_satOrbit.parameters(v_physObjectKeplerParameters);
+    size_t COUNT_ITERATIONS = 500;
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i)
+        v_satOrbit.update(1);
+}
+
 int main(int argc, char* argv[]) {
+    // test1();
+
     renderer(argc, argv);
     return 0;
 }
