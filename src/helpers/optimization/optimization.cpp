@@ -109,7 +109,6 @@ linear_algebra::Vector genetic(Function function, bool maximization,
 
     // create initial population & calculate population fitness
     std::vector<std::pair<double, linear_algebra::Vector>> population(initialPopulationSize);
-    double populationFitness = 0;
     for (size_t i = 0; i < initialPopulationSize; ++i) {
        linear_algebra::Vector args = std::rand() * 1. / RAND_MAX * (maxVals - minVals) + minVals;
 
@@ -118,39 +117,43 @@ linear_algebra::Vector genetic(Function function, bool maximization,
        double fitness = sigmoid(scaleFactor, value);
 
        population[i] = std::make_pair(fitness, args);
-       populationFitness += fitness;
     }
 
     // start iterations
     size_t countIterations = 0;
     do {
+        double populationFitness = 0;
+        for (size_t i = 0; i < population.size(); ++i)
+            populationFitness += population[i].first;
+
         // ordering
         std::sort(population.begin(), population.end(), comparator);
 
         // evaluate sigma
         double sigma = 0;
         for (auto& pr : population)
-            sigma += std::pow(pr.first - populationFitness / population.size(), 2);
-        sigma = std::sqrt(sigma / population.size());
+            sigma += std::pow(pr.first - populationFitness / (population.size()+1), 2);
+        sigma = std::sqrt(sigma / (population.size()+1));
 
         // 'sigma-cut'
         std::vector<double> sigmaCutValues;
         double summarySigmaValues = 0;
         for (auto& pr : population) {
-            sigmaCutValues.emplace_back(1 + (pr.first - populationFitness / population.size()) / (2 * sigma));
+            sigmaCutValues.emplace_back(1 + (pr.first - populationFitness / (population.size()+1)) / (2 * sigma + 1));
             summarySigmaValues += sigmaCutValues.back();
         }
 
         // parents selection
         std::vector<std::pair<double, linear_algebra::Vector>> parents;
         std::set<size_t> selectedChroms;
-        while (selectedChroms.size() < populationSize) {
+        while (summarySigmaValues > 0 && selectedChroms.size() < population.size() && selectedChroms.size() < populationSize) {
+            // std::cout << "summarySigmaValues: " << selectedChroms.size() << std::endl;
             double RV = std::rand() * 1. / RAND_MAX * summarySigmaValues;
             double sumSigmaValues = 0;
             for (size_t i = 0; i < populationSize; ++i) {
                 if (selectedChroms.find(i) != selectedChroms.end())
                     continue;
-                if (sumSigmaValues <= RV && RV < sumSigmaValues + sigmaCutValues[i]) {
+                if (sumSigmaValues <= RV && RV <= sumSigmaValues + sigmaCutValues[i]) {
                     parents.emplace_back(population[i]);
                     summarySigmaValues -= sigmaCutValues[i];
                     selectedChroms.emplace(i);
@@ -216,6 +219,7 @@ linear_algebra::Vector genetic(Function function, bool maximization,
         population = newPopulation;
 
         ++countIterations;
+        // std::cout << countIterations << std::endl;
     } while (countIterations <= MAX_ITERATIONS);
 
     return population.front().second;
