@@ -23,7 +23,7 @@ public:
         const double time = 0,
         const bool save_track = true);
 
-    SatelliteOrbit& update(double dt = 1 /*sec*/);
+    SatelliteOrbit& update(double dt = 1 /*sec*/, bool maximization = true);
 
     SatelliteOrbit& satellite(const math::model::Satellite& satellite);
     SatelliteOrbit& parameters(const helper::container::KeplerParameters& params);
@@ -35,7 +35,7 @@ public:
 
 private:
     void resetSatellite();
-    void updateParameters(double& sclrR, double& nu, double dt, double dh = 1);
+    void updateParameters(double& sclrR, double& nu, double dt, double dh = 1, bool maximization = true);
 
     double m_time;
 
