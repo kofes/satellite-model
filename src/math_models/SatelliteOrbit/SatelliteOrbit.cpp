@@ -70,7 +70,8 @@ void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, doub
     double tmp_lambda = 40;
 
     // FIND OUT OPTIMAL ANGLES
-    linear_algebra::Vector newAngles = helper::optimization::gradient([&] (const linear_algebra::Vector& val_angles) -> double {
+    size_t iteration = 0;
+    linear_algebra::Vector newAngles = helper::optimization::genetic([&] (const linear_algebra::Vector& val_angles) -> double {
         linear_algebra::Vector vec = helper::integral::rk4(
             [&](const linear_algebra::Vector& val, double t) {
                 // copy parameters to container
@@ -123,7 +124,7 @@ void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, doub
 
                 // IMPORTANT: PUTTING NEW ANGLES VALUES HERE
                 double deltaT = (t - m_time + dt);
-                angles += val_angles * deltaT;
+                angles += val_angles;
 
                 linear_algebra::Matrix satellite_orientation =
                             mvp::action::R_x(angles[2]) * // gamma
@@ -186,15 +187,21 @@ void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, doub
             m_time,
             dh
         );
-        return (vec[0] + 100 * vec[1]); // return p, e
+        ++iteration;
+        return vec[0] / (1 - vec[1] * vec[1]); // return p/(1-e^2)
     },
     maximization,
     3,
     linear_algebra::Vector(3, -M_PI / 180 * dh),
     linear_algebra::Vector(3, M_PI / 180 * dh),
-    0.01,
-    1e-4,
-    50
+    // 0.01,
+    // 1e-4,
+    50,
+    50,
+    30,
+    30,
+    5,
+    0.5
     );
     // RECOMPUTE Kepler Parameters
     linear_algebra::Vector result = helper::integral::rk4(
@@ -245,7 +252,7 @@ void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, doub
             sail_norm = orbital_orientation * sail_norm; // to orbital orientation system
 
             auto angles = m_satellite.angles();
-            angles += newAngles * (t - m_time + dt);
+            angles += newAngles;
 
             linear_algebra::Matrix satellite_orientation =
                         mvp::action::R_x(angles[2]) * // gamma
@@ -310,7 +317,7 @@ void SatelliteOrbit::updateParameters(double& sclrR, double& nu, double dt, doub
     );
 
     // UPDATE SATELLITE ANGLES
-    m_satellite.angles(m_satellite.angles() + newAngles * dt);
+    m_satellite.angles(m_satellite.angles() + newAngles);
 
    double v_u = nu + m_keplerParmeters.omega * M_PI / 180;
 

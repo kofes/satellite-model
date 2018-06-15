@@ -263,7 +263,7 @@ int init_geometry() {
     helper::container::KeplerParameters params;
     params.Omega = 45;
     params.i = 65;
-    params.p = 6371e+3 + 650e+3;
+    params.p = 6371e+3 + 720e+3;
     params.e = 0.01;
     params.omega = 40;
     params.tau = 0;
@@ -279,7 +279,7 @@ int init_geometry() {
     sailParameters.ef = 2;
     sailParameters.eb = 0.1;
     sailParameters.area = 400;
-    sailParameters.norm = {1, 0, 0, 1};
+    sailParameters.norm = {0, 0, 1, 1};
 
     linear_algebra::Vector sailR = {-1, 0, 0, 1};
 
@@ -516,8 +516,11 @@ void test1() {
 }
 
 void runModel(int argc, char* argv[]) {
+    std::ofstream fout("genetic-output.txt");
+
     bool maximization;
     satellite_speed = 2;
+    double TIME_LIMIT = 0;
     serialize::map::args(argc, argv)
             .handle("dt", [&] (const serialize::values& values,
                                   const helper::serialize::ERR_CODE& err) {
@@ -539,18 +542,29 @@ void runModel(int argc, char* argv[]) {
                         tmp = false;
                 }
                 maximization = tmp;
+            })
+            .handle("time_limit", [&] (const serialize::values& values,
+                                  const helper::serialize::ERR_CODE& err) {
+                int tmp = 0;
+                for (const string& value: values) {
+                  stringstream sstream(value);
+                  sstream >> tmp;
+                  if (tmp > 0) break;
+                }
+                if (tmp > 0) TIME_LIMIT = tmp;
             });
     init_geometry();
 
     double current_time = 0;
 
-    while (true) {
+    while (true && !(TIME_LIMIT && current_time >= TIME_LIMIT)) {
         auto params = v_satOrbit->parameters();
         auto satellite = v_satOrbit->satellite();
 
         double E = helper::orbit::E(params, helper::constant::EARTH_MASS, satellite.mass(), current_time);
         double r = helper::orbit::r(params, E);
 
+        // LOG:
         std::cout << "angles:"
                   << "\talpha:" << satellite.angles()[0] << '\n'
                   << "\tbeta:" << satellite.angles()[1] << '\n'
@@ -562,12 +576,19 @@ void runModel(int argc, char* argv[]) {
                   << "\tomega: "<< params.omega << '\n'
                   << "\ti: "<< params.i << '\n'
                   << "\tOmega: "<< params.Omega << '\n'
-                  << "\tr: " << r
+                  << "\th: " << r - helper::constant::EARTH_R
                   << std::endl;
+
+        fout << current_time << ' '
+             << r - helper::constant::EARTH_R << ' '
+             << satellite.angles()[0] << ' '
+             << satellite.angles()[1] << ' '
+             << satellite.angles()[2] << std::endl;
 
         v_satOrbit->update(satellite_speed, maximization);
         current_time += satellite_speed;
     }
+    fout.close();
 }
 
 int main(int argc, char* argv[]) {
