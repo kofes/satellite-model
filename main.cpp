@@ -261,17 +261,17 @@ static phys::object v_physObject(10);
 
 int init_geometry() {
     helper::container::KeplerParameters params;
-    params.Omega = 0;
-    params.i = 90;
+    params.Omega = 45;
+    params.i = 65;
     params.p = 6371e+3 + 650e+3;
-    params.e = 0.3;
+    params.e = 0.01;
     params.omega = 40;
     params.tau = 0;
-// DEBUG
-v_physObjectKeplerParameters.Omega = 45;
-v_physObjectKeplerParameters.i = 45;
-v_physObjectKeplerParameters.omega = 45;
-//
+    // DEBUG
+    v_physObjectKeplerParameters.Omega = 45;
+    v_physObjectKeplerParameters.i = 45;
+    v_physObjectKeplerParameters.omega = 45;
+    //
     helper::container::SailParameters sailParameters;
     sailParameters.rho = 0.9;
     sailParameters.Bf = sailParameters.Bb = 2./3;
@@ -286,7 +286,7 @@ v_physObjectKeplerParameters.omega = 45;
     math::model::Satellite sat;
     sat.sail(sailParameters, sailR);
 
-    v_satOrbit = std::shared_ptr<math::model::SatelliteOrbit>(new math::model::SatelliteOrbit);
+    v_satOrbit = std::shared_ptr<math::model::SatelliteOrbit>(new math::model::SatelliteOrbit(0, false));
     v_satOrbit->satellite(sat);
     v_satOrbit->parameters(params);
 
@@ -515,9 +515,64 @@ void test1() {
         v_satOrbit.update(1);
 }
 
+void runModel(int argc, char* argv[]) {
+    bool maximization;
+    satellite_speed = 2;
+    serialize::map::args(argc, argv)
+            .handle("dt", [&] (const serialize::values& values,
+                                  const helper::serialize::ERR_CODE& err) {
+                int tmp = 0;
+                for (const string& value: values) {
+                    stringstream sstream(value);
+                    sstream >> tmp;
+                    if (tmp > 0) break;
+                }
+                if (tmp > 0) satellite_speed = tmp;
+            })
+            .handle("maximization", [&] (const serialize::values& values,
+                                  const helper::serialize::ERR_CODE& err) {
+                bool tmp = true;
+                for (const string& value: values) {
+                    if (value == "true")
+                        tmp = true;
+                    else if (value == "false")
+                        tmp = false;
+                }
+                maximization = tmp;
+            });
+    init_geometry();
+
+    double current_time = 0;
+
+    while (true) {
+        auto params = v_satOrbit->parameters();
+        auto satellite = v_satOrbit->satellite();
+
+        double E = helper::orbit::E(params, helper::constant::EARTH_MASS, satellite.mass(), current_time);
+        double r = helper::orbit::r(params, E);
+
+        std::cout << "angles:"
+                  << "\talpha:" << satellite.angles()[0] << '\n'
+                  << "\tbeta:" << satellite.angles()[1] << '\n'
+                  << "\tgamma:" << satellite.angles()[2]
+                  << std::endl;
+        std::cout << "parameters (" << current_time << "):" << '\n'
+                  << "\tp: "<< params.p << '\n'
+                  << "\te: "<< params.e << '\n'
+                  << "\tomega: "<< params.omega << '\n'
+                  << "\ti: "<< params.i << '\n'
+                  << "\tOmega: "<< params.Omega << '\n'
+                  << "\tr: " << r
+                  << std::endl;
+
+        v_satOrbit->update(satellite_speed, maximization);
+        current_time += satellite_speed;
+    }
+}
+
 int main(int argc, char* argv[]) {
     // test1();
-
-    renderer(argc, argv);
+    // renderer(argc, argv);
+    runModel(argc, argv);
     return 0;
 }
