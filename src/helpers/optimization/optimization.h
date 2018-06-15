@@ -31,11 +31,11 @@ linear_algebra::Vector full(Function fun, bool maximization = false, size_t coun
 linear_algebra::Vector genetic(Function function, bool maximization = false, size_t countArgs = 2,
                                const linear_algebra::Vector& minVals = linear_algebra::Vector(2, -M_PI),
                                const linear_algebra::Vector& maxVals = linear_algebra::Vector(2, M_PI),
-                               const double delta = 0.0001, const size_t MAX_ITERATIONS = 1000,
+                               const size_t MAX_ITERATIONS = 1000,
                                const size_t initialPopulationSize = 100,
-                               const size_t populationSize = 30,
-                               const size_t countCrossovers = 100,
-                               const size_t countMutations = 250,
+                               const size_t populationSize = 100,
+                               const size_t countCrossovers = 450,
+                               const size_t countMutations = 10,
                                const double scaleFactor = 1);
 
 linear_algebra::Vector amoeba(Function function, bool maximization = false, size_t countArgs = 2,

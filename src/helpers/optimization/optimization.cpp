@@ -90,28 +90,26 @@ linear_algebra::Vector genetic(Function function, bool maximization,
                                size_t countArgs,
                                const linear_algebra::Vector& minVals,
                                const linear_algebra::Vector& maxVals,
-                               const double delta, const size_t MAX_ITERATIONS,
+                               const size_t MAX_ITERATIONS,
                                const size_t initialPopulationSize,
                                const size_t populationSize,
                                const size_t countCrossovers,
                                const size_t countMutations,
                                const double scaleFactor
                            ) {
-    size_t countIterations = 0;
-    double populationFitness = 0;
+    std::srand(std::time(nullptr));
 
     // comparator
-    auto comparator = [&] (
+    auto comparator = [] (
         const std::pair<double, linear_algebra::Vector>& pr1,
         const std::pair<double, linear_algebra::Vector>& pr2
     ) -> bool {
-        return pr1.first <= pr2.first;
+        return pr1.first < pr2.first;
     };
 
-    // create initial population
-    std::vector<std::pair<double, linear_algebra::Vector>> population;
-
-    std::srand(std::time(nullptr));
+    // create initial population & calculate population fitness
+    std::vector<std::pair<double, linear_algebra::Vector>> population(initialPopulationSize);
+    double populationFitness = 0;
     for (size_t i = 0; i < initialPopulationSize; ++i) {
        linear_algebra::Vector args = std::rand() * 1. / RAND_MAX * (maxVals - minVals) + minVals;
 
@@ -119,80 +117,15 @@ linear_algebra::Vector genetic(Function function, bool maximization,
        value = (maximization ? -1 : 1) * value;
        double fitness = sigmoid(scaleFactor, value);
 
-       population.emplace_back(fitness, args);
+       population[i] = std::make_pair(fitness, args);
        populationFitness += fitness;
     }
-    // start iterations
-    do {
-        // // DEBUG
-        // std::cout << "not sorted" << std::endl;
-        // for (auto& pr: population)
-        //     std::cout << "fit(" << pr.second <<
-        //               ") -> " << pr.first << std::endl;
-        // //
 
+    // start iterations
+    size_t countIterations = 0;
+    do {
         // ordering
         std::sort(population.begin(), population.end(), comparator);
-
-        // // DEBUG
-        //     std::cout << "sorted" << std::endl;
-        //     for (auto& pr: population)
-        //         std::cout << "fit(" << pr.second <<
-        //                      ") -> " << pr.first << std::endl;
-        // //
-        //
-        // // DEBUG
-        //     std::cout << "crossover" << std::endl;
-        // //
-        // crossover
-        for (size_t i = 0; i < countCrossovers; ++i) {
-            size_t ind1 = std::rand() % population.size();
-            size_t ind2 = ind1 + (ind1 > 0 ? -1 : 1);
-            // // DEBUG
-            //     std::cout << "i: " << i << std::endl;
-            //     std::cout << "ind(1, 2): (" << ind1
-            //               << ", " << ind2 << ")" << std::endl;
-            //     std::cout << "size: " << population.size() << std::endl;
-            // //
-
-            linear_algebra::Vector args(countArgs);
-            for (size_t j = 0; j < countArgs; ++j)
-                args[j] = (std::rand() % 2) ? population[ind1].second[j]
-                                            : population[ind2].second[j];
-
-            double value = function(args);
-            value *= (maximization ? -1 : 1);
-            double fitness = sigmoid(scaleFactor, value);
-
-            population.emplace_back(fitness, args);
-            populationFitness += fitness;
-        }
-
-        // // DEBUG
-        //     for (auto& pr: population)
-        //         std::cout << "fit(" << pr.second <<
-        //                      ") -> " << pr.first << std::endl;
-        // //
-
-        // mutation
-        for (size_t i = 0; i < countMutations; ++i) {
-            size_t ind = std::rand() % population.size() / 2;
-            linear_algebra::Vector args(countArgs);
-            for (size_t j = 0; j < countArgs; ++j) {
-                args[j] = (std::rand() % 2) ? population[ind].second[j] :
-                         std::rand() * 1. / RAND_MAX * (maxVals[j] - minVals[j]) + minVals[j];
-            }
-
-            double value = function(args);
-            value *= (maximization ? -1 : 1);
-
-            double fitness = sigmoid(scaleFactor, value);
-
-            populationFitness -= population[ind].first;
-            population[ind].first = fitness;
-            population[ind].second = args;
-            populationFitness += population[ind].first;
-        }
 
         // evaluate sigma
         double sigma = 0;
@@ -208,9 +141,9 @@ linear_algebra::Vector genetic(Function function, bool maximization,
             summarySigmaValues += sigmaCutValues.back();
         }
 
-        std::vector<std::pair<double, linear_algebra::Vector>> newPopulation;
+        // parents selection
+        std::vector<std::pair<double, linear_algebra::Vector>> parents;
         std::set<size_t> selectedChroms;
-        // selection
         while (selectedChroms.size() < populationSize) {
             double RV = std::rand() * 1. / RAND_MAX * summarySigmaValues;
             double sumSigmaValues = 0;
@@ -218,19 +151,73 @@ linear_algebra::Vector genetic(Function function, bool maximization,
                 if (selectedChroms.find(i) != selectedChroms.end())
                     continue;
                 if (sumSigmaValues <= RV && RV < sumSigmaValues + sigmaCutValues[i]) {
-                    newPopulation.emplace_back(population[i]);
+                    parents.emplace_back(population[i]);
                     summarySigmaValues -= sigmaCutValues[i];
                     selectedChroms.emplace(i);
                 }
             }
         }
+
+        // crossover to produce new children
+        std::vector<std::pair<double, linear_algebra::Vector>> children(countCrossovers);
+        for (size_t i = 0; i < countCrossovers; ++i) {
+            size_t ind1 = std::rand() % parents.size();
+            size_t ind2 = ind1 + (ind1 > 0 ? -1 : 1);
+
+            linear_algebra::Vector args(countArgs);
+            for (size_t j = 0; j < countArgs; ++j)
+                args[j] = (std::rand() % 2) ? parents[ind1].second[j]
+                                            : parents[ind2].second[j];
+
+            double value = function(args);
+            value *= (maximization ? -1 : 1);
+            double fitness = sigmoid(scaleFactor, value);
+
+            children[i].first = fitness;
+            children[i].second = args;
+        }
+
+        // mutation of children
+        for (size_t i = 0; i < countMutations; ++i) {
+            size_t ind = std::rand() % children.size() / 2;
+            linear_algebra::Vector args(countArgs);
+            for (size_t j = 0; j < countArgs; ++j) {
+                args[j] = (std::rand() % 2) ? children[ind].second[j] :
+                         std::rand() * 1. / RAND_MAX * (maxVals[j] - minVals[j]) + minVals[j];
+            }
+
+            double value = function(args);
+            value *= (maximization ? -1 : 1);
+
+            double fitness = sigmoid(scaleFactor, value);
+
+            children[ind].first = fitness;
+            children[ind].second = args;
+        }
+
+        // ordering
+        std::sort(children.begin(), children.end(), comparator);
+
+        // generate new generation by the best of old population & children
+        std::vector<std::pair<double, linear_algebra::Vector>> newPopulation(populationSize);
+        size_t chInd = 0, oldInd = 0;
+
+        for (size_t i = 0; i < populationSize; ++i)
+            if (population[oldInd].first < children[chInd].first) {
+                newPopulation[i].first = population[oldInd].first;
+                newPopulation[i].second = population[oldInd].second;
+                ++oldInd;
+            } else {
+                newPopulation[i].first = children[chInd].first;
+                newPopulation[i].second = children[chInd].second;
+                ++chInd;
+            }
+
         population = newPopulation;
 
         ++countIterations;
-        // // DEBUG
-        //     std::cout << "iteration: " << countIterations << std::endl;
-        // //
     } while (countIterations <= MAX_ITERATIONS);
+
     return population.front().second;
 }
 
