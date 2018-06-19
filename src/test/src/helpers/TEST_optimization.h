@@ -62,14 +62,17 @@ TEST(OptimizationTest, LinearFunctionGradient) {
     double DELTA_H = 0.01;
 
     size_t error_counter = 0;
+    size_t COUNT_ITERATIONS = 500;
 
-    for (size_t i = 0; i < 500; ++i) {
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
         auto vec = helper::optimization::gradient(fun,
             false,
             COUNT_ARGS,
             linear_algebra::Vector(COUNT_ARGS, -10),
             linear_algebra::Vector(COUNT_ARGS, 10),
-            150
+            DELTA_H * DELTA_H,
+            DELTA_H,
+            2000
         );
         for (size_t i = 0; i < vec.size(); ++i)
             if (std::fabs(vec[i] + 10) > DELTA_H) {
@@ -77,10 +80,10 @@ TEST(OptimizationTest, LinearFunctionGradient) {
                 break;
             }
     }
-    std::cout << "COUNT ERRORS: " << error_counter << std::endl;
+    // std::cout << "COUNT ERRORS: " << error_counter << std::endl;
 
-    // for (size_t i = 0; i < vec.size(); ++i)
-    //     EXPECT_LE(std::fabs(vec[i] + 10), DELTA_H / 2);
+
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.05);
 }
 
 // TEST: Gradient algorithm optimization for Sphere function
@@ -94,10 +97,11 @@ TEST(OptimizationTest, SphereFunctionGradient) {
 
     size_t COUNT_ARGS = 3;
     double DELTA_H = 0.01;
+    size_t COUNT_ITERATIONS = 500;
 
     size_t error_counter = 0;
 
-    for (size_t i = 0; i < 500; ++i) {
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
         auto vec = helper::optimization::gradient(fun,
             false,
             COUNT_ARGS,
@@ -110,44 +114,9 @@ TEST(OptimizationTest, SphereFunctionGradient) {
                 break;
             }
     }
-    std::cout << "COUNT ERRORS: " << error_counter << std::endl;
-    //
-    // for (size_t i = 0; i < vec.size(); ++i)
-    //     EXPECT_LE(std::fabs(vec[i]), DELTA_H / 2);
+
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.05);
 }
-
-
-// // TEST: Gradient algorithm optimization for Rastrigin function
-// TEST(OptimizationTest, RastringFunctionGradient) {
-//     auto fun = [&] (const linear_algebra::Vector& vec) {
-//         double A = 10;
-//         double result = A * vec.size();
-//         for (size_t i = 0; i < vec.size(); ++i)
-//             result += vec[i] * vec[i] - A * std::cos(2 * M_PI * vec[i]);
-//         return result;
-//     };
-//
-//     size_t COUNT_ARGS = 5;
-//     double DELTA_H = 0.01;
-//
-//
-//     size_t error_counter = 0;
-//
-//     for (size_t i = 0; i < 500; ++i) {
-//         auto vec = helper::optimization::gradient(fun,
-//             false,
-//             COUNT_ARGS,
-//             linear_algebra::Vector(COUNT_ARGS, -5.12),
-//             linear_algebra::Vector(COUNT_ARGS, 5.12),
-//             DELTA_H);
-//         for (size_t i = 0; i < vec.size(); ++i)
-//             if (std::fabs(vec[i]), DELTA_H / 2)
-//                 ++error_counter;
-//     }
-//
-//     for (size_t i = 0; i < vec.size(); ++i)
-//         EXPECT_LE(std::fabs(vec[i]), DELTA_H / 2);
-// }
 
 // TEST: Gradient algorithm optimization for Rosenbrock function
 // Global minimum = (1, ..., 1)
@@ -164,10 +133,11 @@ TEST(OptimizationTest, RosenbrockFunctionGradient) {
 
     size_t COUNT_ARGS = 3;
     double DELTA_H = 0.01;
+    size_t COUNT_ITERATIONS = 500;
 
     size_t error_counter = 0;
 
-    for (size_t i = 0; i < 500; ++i) {
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
         auto vec = helper::optimization::gradient(fun,
             false,
             COUNT_ARGS,
@@ -180,10 +150,8 @@ TEST(OptimizationTest, RosenbrockFunctionGradient) {
                 break;
             }
     }
-    std::cout << "COUNT ERRORS: " << error_counter << std::endl;
-    //
-    // for (size_t i = 0; i < vec.size(); ++i)
-    //     EXPECT_GE(std::fabs(vec[i] - 1), DELTA_H / 2);
+
+    EXPECT_GE(error_counter * 1. / COUNT_ITERATIONS, 0.85);
 }
 
 // TEST: Nelder-Mead algorithm optimization for linear function
@@ -197,10 +165,11 @@ TEST(OptimizationTest, LinearFunctionNelderMead) {
 
     size_t COUNT_ARGS = 3;
     double DELTA_H = 0.01;
+    size_t COUNT_ITERATIONS = 500;
 
     size_t error_counter = 0;
 
-    for (size_t i = 0; i < 500; ++i) {
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
         auto vec = helper::optimization::amoeba(fun,
             false,
             COUNT_ARGS,
@@ -214,10 +183,8 @@ TEST(OptimizationTest, LinearFunctionNelderMead) {
                 break;
             }
     }
-    std::cout << "COUNT ERRORS: " << error_counter << std::endl;
-    //
-    // for (size_t i = 0; i < vec.size(); ++i)
-    //     EXPECT_LE(std::fabs(vec[i] + 10), DELTA_H / 2);
+
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.05);
 }
 
 // TEST: Nelder-Mead algorithm optimization for Sphere function
@@ -231,10 +198,11 @@ TEST(OptimizationTest, SphereFunctionNelderMead) {
 
     size_t COUNT_ARGS = 3;
     double DELTA_H = 0.01;
+    size_t COUNT_ITERATIONS = 500;
 
     size_t error_counter = 0;
 
-    for (size_t i = 0; i < 500; ++i) {
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
         auto vec = helper::optimization::amoeba(fun,
             false,
             COUNT_ARGS,
@@ -248,10 +216,7 @@ TEST(OptimizationTest, SphereFunctionNelderMead) {
                 break;
             }
     }
-    std::cout << "COUNT ERRORS: " << error_counter << std::endl;
-    //
-    // for (size_t i = 0; i < vec.size(); ++i)
-    //     EXPECT_LE(std::fabs(vec[i]), DELTA_H / 2);
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.05);
 }
 
 // TEST: Nelder-Mead algorithm optimization for Rosenbrock function
@@ -300,7 +265,7 @@ TEST(OptimizationTest, LinearFunctionGenetic) {
         return result;
     };
 
-    size_t COUNT_ITERATIONS = 500;
+    size_t COUNT_ITERATIONS = 1000;
     size_t error_counter = 0;
 
     size_t COUNT_ARGS = 6;
@@ -315,20 +280,20 @@ TEST(OptimizationTest, LinearFunctionGenetic) {
             COUNT_ARGS,
             linear_algebra::Vector(COUNT_ARGS, -10),
             linear_algebra::Vector(COUNT_ARGS, 10),
-            100 + 0.5 / DELTA_H, // count iterations
-            150 + 0.1 / DELTA_H, // initial population size
-            100 + 0.3 / DELTA_H, // common population size
-            200 + 0.2 / DELTA_H, // count crossovers
-            35 + 0.1 / DELTA_H, // count mutations
-            0.5 // scale factor
+            70, // count iterations
+            60, // initial population size
+            40, // common population size
+            60, // count crossovers
+            15, // count mutations
+            1 // scale factor
         );
 
         for (size_t i = 0; i < vec.size(); ++i)
-            if (std::fabs(vec[i]+10) > DELTA_H * std::sqrt(COUNT_ARGS)) {
+            if (std::fabs(vec[i]+10) > DELTA_H * COUNT_ARGS) {
                 ++error_counter;
                 break;
             }
     }
 
-    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.1);
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.2);
 }
