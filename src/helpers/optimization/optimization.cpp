@@ -29,30 +29,29 @@ linear_algebra::Vector gradient(Function fun, bool maximization, size_t countArg
     size_t countIterations = 0;
 
     std::srand(std::time(nullptr));
-    double RV1 = std::rand() * 1. / RAND_MAX;
-    double RV2 = std::rand() * 1. / RAND_MAX;
-
-    linear_algebra::Vector vec1((maxVals - minVals)*RV1 + minVals),
-                           vec2((maxVals - minVals)*RV2 + minVals),
-                           grad(countArgs);
-    linear_algebra::Vector delta_i(countArgs, 0);
+    double RV = std::rand() * 1. / RAND_MAX;
     double lambda = 0.01;
 
+    linear_algebra::Vector prev(countArgs),
+                           result(RV * (maxVals - minVals) + minVals),
+                           grad(countArgs);
+
+   linear_algebra::Vector delta_i(countArgs, 0);
     do {
         for (size_t i = 0; i < countArgs; ++i) {
             delta_i[i] = delta;
-            grad[i] = (fun(vec1 + delta_i) - fun(vec1 - delta_i)) / (2 * delta);
+            grad[i] = (fun(result + delta_i) - fun(result - delta_i)) / (2 * delta_i[i]);
             delta_i[i] = 0;
         }
-        linear_algebra::Vector buff = vec2;
-        vec2 = vec1 + (maximization ? 1 : -1) * lambda * grad;
-        bordering(vec2, minVals, maxVals);
-        vec1 = buff;
+        prev = result;
+        result += (maximization ? 1 : -1) * lambda * grad;
+        bordering(result, minVals, maxVals);
         ++countIterations;
-    } while (countIterations < MAX_ITERATIONS &&
-            (vec2 - vec1).length() > epsilon);
+    } while (
+            (!MAX_ITERATIONS || countIterations < MAX_ITERATIONS) &&
+            (result - prev).length() > epsilon);
 
-    return vec2;
+    return result;
 }
 
 linear_algebra::Vector full(Function fun, bool maximization, size_t countArgs,
