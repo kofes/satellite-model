@@ -52,6 +52,6 @@ linear_algebra::Vector solar(const helper::container::SailParameters& params, co
 }
 
 double atm_density(double h, double L) {
-    return 4.8e-12;
+    return 4.8e-15;
 }
 }
