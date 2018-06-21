@@ -516,7 +516,7 @@ void test1() {
 }
 
 void runModel(int argc, char* argv[]) {
-    std::ofstream fout("genetic-output.txt");
+    std::ofstream fout("stable-output.txt");
 
     bool maximization;
     satellite_speed = 2;
@@ -591,8 +591,112 @@ void runModel(int argc, char* argv[]) {
     fout.close();
 }
 
+linear_algebra::Vector gradient(Function fun, bool maximization, size_t countArgs,
+    const linear_algebra::Vector& minVals,
+    const linear_algebra::Vector& maxVals,
+    const double delta, const double epsilon,
+    const size_t MAX_ITERATIONS
+) {
+    size_t countIterations = 0;
+
+    std::srand(std::time(nullptr));
+    double RV = std::rand() * 1. / RAND_MAX;
+
+    linear_algebra::Vector prev(countArgs),
+                           result((maxVals - minVals)*RV + minVals),
+                           grad(countArgs);
+    linear_algebra::Vector delta_i(countArgs, 0);
+    double lambda = 0.01;
+
+    do {
+        for (size_t i = 0; i < countArgs; ++i) {
+            delta_i[i] = delta;
+            grad[i] = (fun(result + delta_i) - fun(result - delta_i)) / (2 * delta);
+            delta_i[i] = 0;
+        }
+        prev = result;
+        result += (maximization ? 1 : -1) * lambda * grad;
+        bordering(result, minVals, maxVals);
+        ++countIterations;
+        std::cout << "iteration: " << countIterations << std::endl;
+        std::cout << "vec: " << result << std::endl;
+    } while (
+        // countIterations < MAX_ITERATIONS &&
+            (result - prev).length() > epsilon);
+
+    return result;
+}
+
+void test2() {
+    auto fun = [] (const linear_algebra::Vector& vals) -> double {
+        double result = 0;
+        for (size_t i = 0; i < vals.size(); ++i)
+            result += vals[i];
+        return result;
+    };
+
+    size_t COUNT_ARGS = 3;
+
+
+    linear_algebra::Vector minVals(COUNT_ARGS, -10);
+    linear_algebra::Vector maxVals(COUNT_ARGS, 10);
+
+    std::srand(std::time(nullptr));
+    double RV = std::rand() * 1. / RAND_MAX;
+    std::cout << "RV: " << RV << std::endl;
+    double DELTA_H = 0.01;
+    double labmda = 0.01;
+    double epsilon = DELTA_H * DELTA_H;
+    bool maximization = false;
+
+    linear_algebra::Vector prev(COUNT_ARGS),
+                           curr(RV * (maxVals - minVals) + minVals),
+                           grad(COUNT_ARGS);
+
+    do {
+        // calculate gradient
+        linear_algebra::Vector delta_i(COUNT_ARGS, 0);
+        for (size_t i = 0; i < COUNT_ARGS; ++i) {
+            delta_i[i] = DELTA_H;
+            grad[i] = (fun(curr + delta_i) - fun(curr - delta_i)) / (2 * delta_i[i]);
+            delta_i[i] = 0;
+        }
+        // eval new values
+        prev = curr;
+        curr += (maximization ? 1 : -1) * labmda * grad;
+        // bordering
+        for (size_t i = 0; i < curr.size(); ++i)
+            if (curr[i] > maxVals[i])
+                curr[i] = maxVals[i];
+            else if (curr[i] < minVals[i])
+                curr[i] = minVals[i];
+    } while ((curr - prev).length() > epsilon);
+    std::cout << curr << std::endl;
+}
+
+void test3() {
+    auto fun = [] (const linear_algebra::Vector& vals) -> double {
+        double result = 0;
+        for (size_t i = 0; i < vals.size(); ++i)
+            result += vals[i];
+        return result;
+    };
+
+    size_t COUNT_ARGS = 3;
+    linear_algebra::Vector minVals(COUNT_ARGS, -10);
+    linear_algebra::Vector maxVals(COUNT_ARGS, 10);
+
+    double DELTA_H = 0.01;
+    double epsilon = DELTA_H * DELTA_H;
+    bool maximization = false;
+    auto result = helper::optimization::gradient(fun, maximization, COUNT_ARGS, minVals, maxVals, DELTA_H, epsilon, 2000);
+    std::cout << result << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     // test1();
+    // test2();
+    // test3();
     // renderer(argc, argv);
     runModel(argc, argv);
     return 0;
