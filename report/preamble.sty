@@ -56,9 +56,9 @@
 \titlespacing*{\subsubsection}{\parindent}{*4}{*4}
 
 \RequirePackage{geometry}
-\geometry{left=2cm}
-\geometry{right=1.5cm}
-\geometry{top=1cm}
+\geometry{left=2.5cm}
+\geometry{right=1cm}
+\geometry{top=2cm}
 \geometry{bottom=2cm}
 \parindent=1cm
 
@@ -77,6 +77,82 @@
 
 \RequirePackage{pdfpages}
 
+\RequirePackage{bibtopic}
+\RequirePackage{cite}
+
+% переименовываем  список литературы в "список литературы"
+% \addto\captionsrussian{%
+% \def\contentsname{Оглавление}%
+% \def\refname{Список литературы}%
+% }
+% \addto\captionsrussian{\def\refname{}}
+% \renewcommand{\bibname}{Список литературы}
+% \def\bibname{Список литературы}
+
+% \renewcommand{\rmdefault}{ftm}
+
+
+
+\RequirePackage{etoolbox}
+\patchcmd{\thebibliography}{\section*{\refname}}{}{}{}
+\patchcmd{\thebibliography}{\chapter*{\refname}}{}{}{}
+
+\renewcommand{\bibname}{}
+
+\RequirePackage{float}
+\floatstyle{plaintop}
+\restylefloat{table}
+
+\RequirePackage{caption}
+\DeclareCaptionLabelSeparator{defffis}{ --- }
+\captionsetup{justification=centering,labelsep=defffis}
+
+\DeclareCaptionFormat{GOSTtable}{#3#2#1}
+\DeclareCaptionLabelSeparator{fill}{\hfill}
+\DeclareCaptionLabelFormat{fullparents}{\bothIfFirst{#1}{~}#2}
+\captionsetup[table]{
+     format=GOSTtable,
+     font={footnotesize},
+     labelformat=fullparents,
+     labelsep=fill,
+     % labelfont=it,
+     textfont=bf,
+     justification=centering,
+     singlelinecheck=false
+     }
+
+% \RequirePackage{eskdx}
+
+
+% \renewcommand{\bibsection}{}
+
+
+% Table of content font-size
+
+\RequirePackage[titles]{tocloft}
+%
+% % \setcounter{tocdepth}{3}% Include up to \subsubsection in ToC
+%
+% % \renewcommand\cftchapfont{\fontsize{12pt}{12pt}\bfseries}
+% % \renewcommand\cftsecfont{\fontsize{12pt}{12pt}}
+% %
+% % \renewcommand\cftchappagefont{\fontsize{12pt}{12pt}\bfseries}
+% % \renewcommand\cftsecpagefont{\fontsize{12pt}{12pt}}
+%
+%
+% Font changes to ToC content of sectional units
+\renewcommand{\cftpartfont}{\fontsize{14pt}{14pt}\bfseries}% \part font in ToC
+\renewcommand{\cftchapfont}{\fontsize{12pt}{12pt}\bfseries}    % \chapter font in ToC
+\renewcommand{\cftsecfont}{\fontsize{12pt}{12pt}}           % \section font in ToC
+\renewcommand{\cftsubsecfont}{\fontsize{12pt}{12pt}}        % \subsection font in ToC
+\renewcommand{\cftsubsubsecfont}{\fontsize{12pt}{12pt}}       % \subsubsection font in ToC
+
+% % Font changes to document content of sectional units
+% \renewcommand{\partfont}{\normalfont\Huge\bfseries}
+% \renewcommand{\chapterfont}{\normalfont\bfseries}
+% \renewcommand{\sectionfont}{\normalfont\LARGE\bfseries}
+
+%
 \def\code#1{\texttt{#1}}
 
 % define Prolog color scheme
