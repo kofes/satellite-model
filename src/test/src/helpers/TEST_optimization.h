@@ -231,7 +231,7 @@ TEST(OptimizationTest, RosenbrockFunctionNelderMead) {
         return result;
     };
 
-    size_t COUNT_ITERATIONS = 500;
+    size_t COUNT_ITERATIONS = 1000;
     size_t error_counter = 0;
 
     for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
@@ -243,7 +243,7 @@ TEST(OptimizationTest, RosenbrockFunctionNelderMead) {
             COUNT_ARGS,
             linear_algebra::Vector(COUNT_ARGS, -10),
             linear_algebra::Vector(COUNT_ARGS, 10),
-            150 + 0.2 / DELTA_H
+            5000
         );
         for (size_t i = 0; i < vec.size(); ++i)
             if (std::fabs(vec[i]-1) > DELTA_H) {
@@ -252,9 +252,46 @@ TEST(OptimizationTest, RosenbrockFunctionNelderMead) {
             }
     }
 
-    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.05);
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.3);
 }
 
+// TEST: Nelder-Mead algorithm optimization for custom function
+TEST(OptimizationTest, CustomFunctionNelderMead) {
+    linear_algebra::Vector delta {
+            1  , -5  , 9.2 , 0.4  , 2.3,
+            7.5, -8.6, 4.76, -0.23, 3.89
+    };
+    auto fun = [&] (const linear_algebra::Vector& vec) {
+        double A = 10;
+        double result = A * vec.size();
+        for (size_t i = 0; i < vec.size(); ++i)
+            result += (vec[i] - delta[i]) * (vec[i] - delta[i]);
+        return result;
+    };
+
+    size_t COUNT_ITERATIONS = 1000;
+    size_t error_counter = 0;
+
+    for (size_t i = 0; i < COUNT_ITERATIONS; ++i) {
+        size_t COUNT_ARGS = std::rand() % 10 + 1;
+        double DELTA_H = 0.01;
+
+        auto vec = helper::optimization::amoeba(fun,
+            false,
+            COUNT_ARGS,
+            linear_algebra::Vector(COUNT_ARGS, -10),
+            linear_algebra::Vector(COUNT_ARGS, 10),
+            500
+        );
+        for (size_t i = 0; i < vec.size(); ++i)
+            if (std::fabs(vec[i]-delta[i]) > DELTA_H) {
+                ++error_counter;
+                break;
+            }
+    }
+
+    EXPECT_LE(error_counter * 1. / COUNT_ITERATIONS, 0.3);
+}
 
 // TEST: Genetic algorithm optimization for linear function
 TEST(OptimizationTest, LinearFunctionGenetic) {
