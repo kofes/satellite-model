@@ -103,13 +103,15 @@ linear_algebra::Vector genetic(Function function, bool maximization,
         const std::pair<double, linear_algebra::Vector>& pr1,
         const std::pair<double, linear_algebra::Vector>& pr2
     ) -> bool {
-        return pr1.first < pr2.first;
+        return pr1.first <= pr2.first;
     };
 
     // create initial population & calculate population fitness
     std::vector<std::pair<double, linear_algebra::Vector>> population(initialPopulationSize);
     for (size_t i = 0; i < initialPopulationSize; ++i) {
-       linear_algebra::Vector args = std::rand() * 1. / RAND_MAX * (maxVals - minVals) + minVals;
+       linear_algebra::Vector args(countArgs);
+       for (size_t i = 0; i < args.size(); ++i)
+            args[i] = std::rand() * 1. / RAND_MAX * (maxVals[i] - minVals[i]) + minVals[i];
 
        double value = function(args);
        value = (maximization ? -1 : 1) * value;
@@ -246,16 +248,17 @@ linear_algebra::Vector amoeba(Function function, bool maximization, size_t count
     };
 
     // create initial simplex
-    std::vector<std::pair<double, linear_algebra::Vector>> points;
+    std::vector<std::pair<double, linear_algebra::Vector>> points(countArgs + 1);
 
     for (size_t i = 0; i < countArgs + 1; ++i) {
         linear_algebra::Vector args(countArgs);
-        args = std::rand() * 1. / RAND_MAX * (maxVals - minVals) + minVals;
+        for (size_t i = 0; i < countArgs; ++i)
+            args[i] = std::rand() * 1. / RAND_MAX * (maxVals[i] - minVals[i]) + minVals[i];
 
         double value = function(args);
         value = (maximization ? -1 : 1) * value;
 
-        points.emplace_back(value, args);
+        points[i] = std::make_pair(value, args);
     }
 
     // // DEBUG
@@ -302,10 +305,12 @@ linear_algebra::Vector amoeba(Function function, bool maximization, size_t count
                        && reflectionValue < lastPr.first;
 
         if (reflection) {
-            points.back() = std::make_pair(reflectionValue, reflectionPoint);
+            points[points.size() - 1] = std::make_pair(reflectionValue, reflectionPoint);
 
             // // DEBUG
             //     std::cout << "reflection" << std::endl;
+            //     std::cout << "point: " << points[points.size() - 1].second << std::endl;
+            //     std::cout << "point: " << reflectionPoint << std::endl;
             //     std::cout << "iteration: " << countIterations << std::endl;
             // //
 
