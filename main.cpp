@@ -516,7 +516,7 @@ void test1() {
 }
 
 void runModel(int argc, char* argv[]) {
-    std::ofstream fout("stable-output.txt");
+    std::ofstream fout("nm-output.txt");
 
     bool maximization;
     satellite_speed = 2;
