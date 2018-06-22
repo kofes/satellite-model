@@ -75,10 +75,10 @@ len_size = int(len(nm_r)/2)
 
 print("R(grad): {0}, R(GA): {1}, R(NM): {2}".format(sum(d_grad)/len_size/2, sum(d_ga)/len_size/2, sum(d_nm)/len_size/2))
 
-plt.plot(d_ga_t, d_ga, 'g-', label='gradient')
-plt.plot(d_grad_t, d_nm, 'r-', label='Genetic-algo')
-plt.plot(d_grad_t, d_grad, 'b-', label='Nelder-Mead')
-# plt.plot(stable_t, stable_r, 'y-', label='stabilization only')
+plt.plot(ga_t, ga_r, 'g-', label='gradient')
+plt.plot(nm_t, nm_r, 'r-', label='Genetic-algo')
+plt.plot(grad_t, grad_r, 'b-', label='Nelder-Mead')
+plt.plot(stable_t, stable_r, 'y-', label='stabilization only')
 
 plt.grid()
 plt.legend(loc=2, borderaxespad=0.)
