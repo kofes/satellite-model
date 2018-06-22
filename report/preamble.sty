@@ -50,10 +50,16 @@
     {\thesubsubsection}
     {1em}{}
 
+\titleformat{\paragraph}
+    {\normalsize\bfseries}
+    {\theparagraph}
+    {1em}{}
+
 \titlespacing*{\chapter}{0pt}{30pt}{8pt}
 \titlespacing*{\section}{\parindent}{*4}{*4}
 \titlespacing*{\subsection}{\parindent}{*4}{*4}
 \titlespacing*{\subsubsection}{\parindent}{*4}{*4}
+\titlespacing*{\paragraph}{\parindent}{*4}{*4}
 
 \RequirePackage{geometry}
 \geometry{left=2.5cm}
@@ -131,7 +137,8 @@
 
 \RequirePackage[titles]{tocloft}
 %
-% % \setcounter{tocdepth}{3}% Include up to \subsubsection in ToC
+\setcounter{tocdepth}{3}% Include up to \subsubsection in ToC
+\setcounter{secnumdepth}{4}
 %
 % % \renewcommand\cftchapfont{\fontsize{12pt}{12pt}\bfseries}
 % % \renewcommand\cftsecfont{\fontsize{12pt}{12pt}}

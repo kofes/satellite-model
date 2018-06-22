@@ -1,5 +1,5 @@
-\section{Проект}
-\subsection{Средства реализации}
+\chapter{Проект}
+\section{Средства реализации}
 \noindent\indent При разработке использовался язык программирования C/C++,
 как основной язык разработки системы моделирования <<Sputnix Satellite Modeller>>.
 Так же использовались следующие продукты:
@@ -7,7 +7,7 @@
     \item OpenGL, freeglut, glu -- для визуализации данных
     \item Google Test -- для юнит-тестирования компонентов
 \end{itemize}
-\subsection{Модули и алгоритмы}
+\section{Модули и алгоритмы}
 \noindent\indent Интерфейс системы делится на две основные части: визуализирующую и
 модельную.\par
     К модельной относятся:
@@ -46,7 +46,7 @@
     \item \code{shape::solid::sphere} -- класс отрисовки сфер;
     \item \code{shape::line} -- класс отрисовки линий;
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::container::SailParameters}}
+\subsection{Интерфейс \code{helper::container::SailParameters}}
 \noindent\indent Поля:
 \begin{itemize}
     \item \code{Bf}, \code{Bb} -- коэффициенты, показывающие характер индикатрисы отражения
@@ -57,7 +57,7 @@
     \item \code{area} -- площадь элементарной части паруса
     \item \code{norm} -- нормаль, восстановленная от поверхности элементарной части паруса.
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::container::KeplerParameters}}
+\subsection{Интерфейс \code{helper::container::KeplerParameters}}
 \noindent\indent Поля:
 \begin{itemize}
     \item \code{e} -- эксцентриситет орбиты;
@@ -67,7 +67,7 @@
     \item \code{Omega} -- долгота восходящего узла;
     \item \code{tau} -- параметр положения объекта на орбите в каждый момент времени.
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::shadow}}
+\subsection{Интерфейс \code{helper::shadow}}
 \noindent\indent Функции:
 \begin{itemize}
     \item \code{shadowFunction(Vector r, Vector rSE)} -- вычисляет значение
@@ -84,7 +84,7 @@
     функция расчета угла тени/полутени, в зависимости от переданного параметра
     тангенса угла наклона (\code{tgOmega});
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::orbit}}
+\subsection{Интерфейс \code{helper::orbit}}
 \noindent\indent Функции:
 \begin{itemize}
     \item \code{E(helper::container::KeplerParameters kepParams,
@@ -103,25 +103,34 @@
     \item \code{T(helper::container::KeplerParameters kepParams, double mainMass, double satMass)} --
     функция расчета периода обращения вокруг заданной орбиты.
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::optimization}}
+\subsection{Интерфейс \code{helper::optimization}}
 \noindent\indent Функции:
 \begin{itemize}
     \item \code{gradient(Function fun, bool maximization, size\_t countArgs,
-    Vector minVals, Vector maxVals, double delta, double epsilon, size\_t MAX\_ITERATIONS)} --
+    Vector minVals, Vector maxVals, double delta, double epsilon,}
+
+    \code{size\_t MAX\_ITERATIONS)} --
     функция поиска оптимальных параметров заданной функции градиентным методом;
-    \item \code{full(Function fun, bool maximization, size\_t countArgs,
-    Vector minVals, Vector maxVals, delta)} -- функция поиска оптимальных параметров
+    \item \code{full(Function fun, bool maximization, size\_t countArgs,}
+
+    \code{Vector minVals, Vector maxVals, delta)} -- функция поиска оптимальных параметров
     заданной функции методом <<грубой силы>>;
-    \item \code{genetic(Function function, bool maximization, size\_t countArgs,
-    Vector minVals, Vector maxVals, double delta, size\_t MAX\_ITERATIONS,
-    size\_t initialPopulation, size\_t populationSize, size\_t countCrossovers,
-    size\_t countMutations, double scaleFactor)} -- функция поиска оптимальных
+    \item \code{genetic(Function function, bool maximization, size\_t countArgs,}
+
+    \code{Vector minVals, Vector maxVals, double delta,}
+
+    \code{size\_t MAX\_ITERATIONS, size\_t initialPopulation,}
+
+    \code{size\_t populationSize, size\_t countCrossovers,}
+
+    \code{size\_t countMutations, double scaleFactor)} -- функция поиска оптимальных
     параметров заданной функции с помощью генетического алгоритма;
-    \item \code{amoeba(Function function, bool maximization, size\_t countArgs,
-    Vector minVals, Vector maxVals, size\_t MAX\_ITERATIONS)} -- функция поиска
+    \item \code{amoeba(Function function, bool maximization, size\_t countArgs,}
+
+    \code{Vector minVals, Vector maxVals, size\_t MAX\_ITERATIONS)} -- функция поиска
     оптимальных параметров заданной функции с помощью адаптивного алгоритма Нелдера-Мида.
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::integral}}
+\subsection{Интерфейс \code{helper::integral}}
 \noindent\indent Функции:
 \begin{itemize}
     \item \code{rect(function f, double from, double to, double dh)} -- функция
@@ -131,7 +140,7 @@
     \item \code{simpson(function f, double from, double to, double dh)} -- функция
     поиска значения интеграла функции на заданном интервале методом Симпсона;
 \end{itemize}
-\subsubsection{Интерфейс \code{helper::constant}}
+\subsection{Интерфейс \code{helper::constant}}
 \noindent\indent Константы:
 \begin{itemize}
     \item \code{G} -- гравитационная постоянная;
@@ -154,16 +163,13 @@
     \item \code{EARTH\_ARGUMENT\_PERAPSIS} -- аргумент перигея орбиты Земли;
     \item \code{EARTH\_ECLIPTIC} -- угол наклонения эклиптики Земли.
 \end{itemize}
-\subsubsection{Интерфейс \code{force}}
+\subsection{Интерфейс \code{force}}
 \noindent\indent Функции:
 \begin{itemize}
     \item \code{gravJ2(
     helper::container::KeplerParameters params,
     double mass,
-    double mu,}
-
-
-    \code{double r,
+    double mu, double r,
     double nu
     )} -- функция расчета силы, учитывающей действие второй зональной гармоники;
     \item \code{atmos(
@@ -178,46 +184,50 @@
     Vector solar\_norm
     )} -- функция расчета силы, возникающей под действием солнечного давления.
 \end{itemize}
-\subsubsection{Интерфейс \code{kepler::Differetials}}
+\subsection{Интерфейс \code{kepler::Differetials}}
 \noindent\indent Методы:
 \begin{itemize}
     \item \code{operator()(
-    helper::container::KeplerParameters params,
-    phys::object main,}
+    helper::container::KeplerParameters params,}
 
-
-    \code{phys::object sat,
+    \code{phys::object main,
+    phys::object sat,
     double t,
     Vector force
     )} -- метод (функтор) расчета значений изменения кеплеровых элементов орбиты.
     Возвращает вектор значений ($[
         \frac{dp}{dt},\,\,
-        \frac{de}{dt}\,\,
-        \frac{d\omega}{dt}\,\,
-        \frac{di}{dt}\,\,
-        \frac{d\Omega}{dt}\,\,
+        \frac{de}{dt},\,\,
+        \frac{d\omega}{dt},\,\,
+        \frac{di}{dt},\,\,
+        \frac{d\Omega}{dt},\,\,
         \frac{d\tau^*}{dt}
     ]$)
     \item \code{dexdt(double r,
         double mu,
-        double nu,
-        helper::container::KeplerParameters params,
+        double nu,}
+
+        \code{helper::container::KeplerParameters params,
         Vector f
     )} -- метод расчета изменения <<наклоненного>> эксцентриситета на $\cos(\omega)$;
     \item \code{deydt(double r,
         double mu,
-        double nu,
+        double nu,}
+
+        \code{
         helper::container::KeplerParameters params,
         Vector f
     )} -- метод расчета изменения <<наклоненного>> эксцентриситета на $\sin(\omega)$;
     \item \code{dudt(double r,
         double mu,
-        double nu,
+        double nu,}
+
+        \code{
         helper::container::KeplerParameters params,
         Vector f
     )} -- метод расчета изменения широты орбиты;
 \end{itemize}
-\subsubsection{Класс \code{math::object}}
+\subsection{Класс \code{math::object}}
 \noindent\indent Поля:
 \begin{itemize}
     \item \code{m\_position} -- вектор позиции объекта;
@@ -236,7 +246,7 @@
     \item \code{scale()} -- метод получения текущей матрицы масштабирования;
     \item \code{orientation()} -- метод получения текущей матрицы ориентации объекта.
 \end{itemize}
-\subsubsection{Класс \code{phys::object}}
+\subsection{Класс \code{phys::object}}
 \noindent\indent Поля:
 \begin{itemize}
     \item \code{m\_dw} -- вектор угловой скорости;
@@ -253,7 +263,7 @@
     \item \code{dv()} -- метод получения текущей скорости;
     \item \code{mass()} -- метод получения значения массы объекта.
 \end{itemize}
-\subsection{Анализ физической модели}
+\section{Зависимость силы солнечного давления от углов ориентации аппарата}
 \noindent\indent Т.к. в данной конкретной задаче необходимо увеличить высоту орбиты
 спутника на максимальную высоту в заданный промежуток времени, а наибольший эффект
 на это оказывают две компоненты: параметр орбиты и эксцентриситет орбиты, то естественно
@@ -282,3 +292,51 @@
     Из чего можно сделать предположение, что градиентный метод в условиях данной
 задачи не будет достаточным для поиска максимума функции в каждой точке отсчета
 при достаточно больших областях допустимых значений изменения углов ориентации КА.
+\section{Алгоритм расчета оптимальных угловых значений}
+\noindent\indent Из вида уравнений системы (\ref{eq:OsculirDynamic}) следует, что
+для нахождения значений кеплеровых элементов орбиты требуется либо использовать численные
+методы поиска приближенного значения интегральной функции, либо попытаться вычислить
+значения путем разложения функций в ряды и нахождением коэффициентов ряда (также
+численно) [16].\par
+    Наиболее популярным среди рассмотренных методов численного интегрирования
+были методы Рунге-Кутты. В рамках данной работы реализованы методы четвертого,
+пятого и восьмого порядка точности.\par
+    Также в каждый момент пересчета значений кеплеровых элементов орбиты, происходят
+операции перевода векторов, определяющих значения действующих возмущающих сил из
+из связанной системы координат в орбитальную, тем самым накладывая определенную
+нагрузку на вычисление значений.\par
+    Ограничения на изменения углов вводятся из расчета возможностей системы
+стабилизации аппарата.\par
+    Для поиска оптимальных углов ориентации спутника в каждый момент времени,
+необходимо вычислить оптимальные значения <<изменений>> углов, которые необходимо
+произвести. В данной работе, рассмотренна следующая реализация данной идеи:\par
+    На интервале времени $[t_0, t_N]$, разбитом на $N+1$ узлов мы пытаемся максимизировать
+расстояние от Земли до спутника, и для этого в каждой точке отсчета мы пытаемся подобрать
+оптимальные значения изменений углов ориентации, которые нужно придать при заданных
+ограничениях. Для этого представим значения изменений в качестве векторов вида:\par
+\begin{equation}
+    \begin{aligned}
+        &\delta\alpha(t) = (\delta\alpha_{t_1}, \delta\alpha_{t_1}, ..., \delta\alpha_{t_N})^T, \\
+        &\delta\beta(t) = (\delta\beta_{t_1}, \delta\beta_{t_1}, ..., \delta\beta_{t_N})^T, \\
+        &\delta\gamma(t) = (\delta\gamma_{t_1}, \delta\gamma_{t_1}, ..., \delta\gamma_{t_N})^T. \\
+    \end{aligned}
+\end{equation}\par
+    В каждый момент времени, углы ориентации спутника определяются как сумма
+изменений углов и начальных значений.
+\begin{equation}
+    \begin{aligned}
+        &\alpha(t_n) = \sum\limits_{k=1}^{n}\delta\alpha_{t_k} + \alpha(t_{0}), \\
+        &\beta(t_n) = \sum\limits_{k=1}^{n}\delta\beta_{t_k} + \beta(t_{0}), \\
+        &\gamma(t_n) = \sum\limits_{k=1}^{n}\delta\beta_{t_k} + \beta(t_{0}). \\
+    \end{aligned}
+\end{equation}\par
+    Вектор нормали, восстановленный к элементарной части солнечного паруса, заданный
+первоначально в связанной системе координат, будет переориентирован:
+\begin{equation}
+    \vec{n}_{solar\, sail} = A \cdot \vec{n}_{solar\, sail},
+\end{equation}\par
+    где $A$ -- матрица направляющих косинусов, переводящая из связанной системы
+координат в орбитальную.\par
+    При каждом вычислении новых значений кеплеровых элементов орбиты, мы пытаемся
+суммарно максимизировать функцию расстояния от Земли до спутника на заданном интервале
+времени.\par
